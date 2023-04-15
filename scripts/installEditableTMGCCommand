@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# This bash script uses the current working directory to create a simple
+# script to run the tmgc command anywhere in a user's
+# workspace.
+
+cmdScript=$(pwd)/.venv/bin/tmgc
+
+cat << CMD_SCRIPT > $HOME/.local/bin/tmgc
+#!/bin/sh
+
+# This shell script was created by the ConTeXt2ninja tool
+#       './scripts/installEditableTMGCCommand'
+# script.
+
+exec $cmdScript \$@
+CMD_SCRIPT
+
+chmod a+x $HOME/.local/bin/tmgc
+
+echo ""
+echo "Editable tmgc command has been created"
+echo ""

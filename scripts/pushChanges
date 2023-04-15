@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Push changes to tmGrammars to the conTeXt and lpic langServers
+cd ..
+
+py_copy_tmGrammars () {
+  toDir=$1
+  echo "----------------------------------------------------------"
+  echo ""
+  echo "Python copying tmGrammars to $toDir"
+  pushd $toDir
+  pwd
+  .venv/bin/python scripts/updateLocalTmGrammars
+  popd
+}
+
+py_copy_tmGrammars conTeXt-langServer
+py_copy_tmGrammars lpic-langServer
