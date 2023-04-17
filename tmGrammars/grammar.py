@@ -25,7 +25,7 @@ class Grammar :
 
   def addPatternsToRepository(aName, aScope, patterns) :
     if aName in Grammar.repository :
-      print("WARNING: Duplicate pattern name {aPatternName} in repository.")
+      print(f"WARNING: Duplicate pattern name {aName} in repository.")
       print("  last pattern wins! (This may not be what you want)")
       print("")
     Grammar.repository[aName] = patterns
@@ -79,6 +79,7 @@ class Grammar :
   def loadFromResourceDir(aGrammarPackage, aGrammarFile) :
     syntaxDir = importlib.resources.files(aGrammarPackage)
     for aSyntaxFile in syntaxDir.iterdir() :
+      if not aSyntaxFile.name.startswith(aGrammarFile)   : continue
       if not aSyntaxFile.name.endswith('tmGrammar.json') : continue
       with importlib.resources.as_file(aSyntaxFile) as syntaxFile :
         syntaxStr = syntaxFile.read_text()
