@@ -76,7 +76,7 @@ class Grammar :
       grammarDict = json.loads(grammarFile.read())
       Grammar.loadFromDict(grammarDict)
 
-  def loadFromResourceDir(aGrammarPackage) :
+  def loadFromResourceDir(aGrammarPackage, aGrammarFile) :
     syntaxDir = importlib.resources.files(aGrammarPackage)
     for aSyntaxFile in syntaxDir.iterdir() :
       if not aSyntaxFile.name.endswith('tmGrammar.json') : continue
