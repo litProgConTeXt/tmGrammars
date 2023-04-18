@@ -24,6 +24,7 @@ class Grammar :
   baseScopes = {}
 
   def addPatternsToRepository(aName, aScope, patterns) :
+    #print(f"adding {aName} to repository")
     if aName in Grammar.repository :
       print(f"WARNING: Duplicate pattern name {aName} in repository.")
       print("  last pattern wins! (This may not be what you want)")
@@ -72,19 +73,31 @@ class Grammar :
     Grammar.baseScopes[scopeName] = info
 
   def loadFromFile(aGrammarPath) :
-    with open(aGrammarPath) as grammarFile :
-      grammarDict = json.loads(grammarFile.read())
-      Grammar.loadFromDict(grammarDict)
+    try :
+      with open(aGrammarPath) as grammarFile :
+        grammarDict = json.loads(grammarFile.read())
+        Grammar.loadFromDict(grammarDict)
+    except Exception as err :
+      print(repr(err))
+      print(f"  trying to load {aGramamrPath}")
 
   def loadFromResourceDir(aGrammarPackage, aGrammarFile) :
     syntaxDir = importlib.resources.files(aGrammarPackage)
+    foundGrammar = False
     for aSyntaxFile in syntaxDir.iterdir() :
       if not aSyntaxFile.name.startswith(aGrammarFile)   : continue
       if not aSyntaxFile.name.endswith('tmGrammar.json') : continue
-      with importlib.resources.as_file(aSyntaxFile) as syntaxFile :
-        syntaxStr = syntaxFile.read_text()
-        syntaxDict = json.loads(syntaxStr)
-        Grammar.loadFromDict(syntaxDict)
+      try :
+        with importlib.resources.as_file(aSyntaxFile) as syntaxFile :
+          syntaxStr = syntaxFile.read_text()
+          syntaxDict = json.loads(syntaxStr)
+          Grammar.loadFromDict(syntaxDict)
+          foundGrammar = True
+      except Exception as err :
+        print(repr(err))
+        print(f"  trying to load {aGrammarPackage}:{aGrammarFile}")
+    if not foundGrammar :
+      print(f"Could not find grammar: {aGrammarPackage}:{aGrammarFile}")
 
   def collectPatternReferences() :
     repo = Grammar.repository
