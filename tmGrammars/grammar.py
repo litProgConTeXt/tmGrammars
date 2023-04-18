@@ -165,11 +165,23 @@ class Grammar :
       for aPattern in aRule['patterns'] :
         Grammar.addScopeRules(aScope, aPattern)
     if 'include' in aRule :
+      # WON'T DO: need to deal with $self / $base
+      # see: https://macromates.com/manual/en/language_grammars
+      # SHORT ANSWER... $self means the *grammar* that is being loaded.
+      # ... we do NOT accept $self ...
+      # ... the grammar should be mentioned explicitly!
       includeKey = aRule['include'].lstrip('#')
-      if includeKey in Grammar.repository :
-        Grammar.addScopeRules(
-          aScope, Grammar.repository[includeKey], includeKey
-        )
+      if includeKey in ["$self", "$base"] :
+        patternStr = ""
+        if patternName : patternStr = f" pattern: {patternName}"
+        print(f"WARNING you are trying to include a grammar using {includeKey}")
+        print(f"        we do not implement either $self or $base!")
+        print(f"        (scope: {aScope}{patternStr})")
+      else : 
+        if includeKey in Grammar.repository :
+          Grammar.addScopeRules(
+            aScope, Grammar.repository[includeKey], includeKey
+          )
 
   def addScope(aScope, howFound, aRule=None) :
     s2r = Grammar.scopes2rules
