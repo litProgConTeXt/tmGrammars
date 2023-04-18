@@ -1,11 +1,14 @@
 
 import copy
 import importlib
+import json
 import os
 import sys
+import tomllib
 import yaml
 
 from tmGrammars.grammar import Grammar
+from tmGrammars.scopeActions import ScopeActions
 
 def addArgParseArguments(argParser) :
   argParser.add_argument('-v', '--verbose', action="store_true",
@@ -28,6 +31,12 @@ def addArgParseArguments(argParser) :
   )
   argParser.add_argument('--prune', action='store_true',
     help="Prune unused patterns from grammar"
+  )
+  argParser.add_argument("--rules", action='store_true',
+    help="Show the rules"
+  )
+  argParser.add_argument("--actions", action='store_true',
+    help="Show the actions"
   )
 
 def mergeConfigData(configData, newConfigData, thePath) :
@@ -75,8 +84,23 @@ def loadConfig(cliArgs, defaultConfig={}) :
     #print(cliArgs['config'])
     fConfig = {}
     fConfigPath = os.path.abspath(os.path.expanduser(cliArgs['config']))
-    with open(fConfigPath, 'r') as fConfigFile :
-      fConfig = yaml.safe_load(fConfigFile)
+    try :
+      with open(fConfigPath, 'r') as fConfigFile :
+        if fConfigPath.endswith('.yaml') or fConfigPath.endswith('.yml') :
+          fConfig = yaml.safe_load(fConfigFile)
+        elif fConfigPath.endswith('.toml') :
+          fConfig = tomllib.loads(fConfigFile.read())
+        elif fConfigPath.endswith('.json') :
+          fConfig = json.load(fConfigFile)
+        else :
+          print("Could not find corrrect configuration file format")
+          print(f"  trying to open {cliArgs['config']}")
+          sys.exit(-1)
+    except Exception as err :
+      print(repr(err))
+      print(f"  trying to open {cliArgs['config']}")
+      sys.exit(-1)
+    
     #print(yaml.dump(config))
     mergeConfigData(newConfig, fConfig, '.')
 
@@ -101,11 +125,15 @@ def loadConfig(cliArgs, defaultConfig={}) :
         actions = importlib.import_module(anActionModule)
         if not actions :
           print("No actions loaded")
-          return
+          sys.exit(-1)
       except Exception as err :
         print(repr(err))
-        return
+        sys.exit(-1)
     print("")
+
+  if cliArgs['actions'] :
+    ScopeActions.printActions()
+    sys.exit(0)
 
   if cliArgs['loadGrammar'] :
     for aGrammar in cliArgs['loadGrammar'] :
@@ -116,14 +144,21 @@ def loadConfig(cliArgs, defaultConfig={}) :
           Grammar.loadFromResourceDir(aPackage, aFile)
         except Exception as err :
           print(repr(err))
-          return
+          sys.exit(-1)
       elif os.sep in aGrammar :
         aPath = os.path.abspath(os.path.expanduser(aGrammar))
         try :
           Grammar.loadFromFile(aPath)
         except Exception as err :
           print(repr(err))
-          return
+          sys.exit(-1)
     print("")
+
+  Grammar.collectRules()
+  if cliArgs['prune'] : Grammar.pruneRules()
+
+  if cliArgs['rules'] :
+    Grammar.printRules()
+    sys.exit(0)
 
   return verbose

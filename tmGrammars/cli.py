@@ -8,7 +8,6 @@ import yaml
 import tmGrammars.configuration 
 from tmGrammars.grammar import Grammar
 from tmGrammars.documents import DocumentCache
-from tmGrammars.scopeActions import ScopeActions
 
 def cli() :
   argParser  = argparse.ArgumentParser()
@@ -31,28 +30,12 @@ def cli() :
   argParser.add_argument('--scopePaths', action='store_true',
     help="List the scopePaths found in the current grammar"
   )
-  argParser.add_argument("--rules", action='store_true',
-    help="Show the rules"
-  )
-  argParser.add_argument("--actions", action='store_true',
-    help="Show the actions"
-  )
+
   cliArgs = vars(argParser.parse_args())
   tmGrammars.configuration.loadConfig(cliArgs)
 
-  if cliArgs['actions'] :
-    ScopeActions.printActions()
-    return
-
-  Grammar.collectRules()
-  if cliArgs['prune'] : Grammar.pruneRules()
-
   if cliArgs['patterns'] :
     Grammar.printPatternReferences()
-    return
-
-  if cliArgs['rules'] :
-    Grammar.printRules()
     return
 
   if cliArgs['grammar'] :
