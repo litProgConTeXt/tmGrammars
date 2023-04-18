@@ -1,4 +1,5 @@
 
+import copy
 import importlib
 import os
 import sys
@@ -29,27 +30,62 @@ def addArgParseArguments(argParser) :
     help="Prune unused patterns from grammar"
   )
 
-def loadConfig(cliArgs) :
+def mergeConfigData(configData, newConfigData, thePath) :
+  """ This is a generic Python merge. It is a *deep* merge and handles
+  both dictionaries and arrays """
+
+  if type(configData) is None :
+    print("ERROR(mergeConfigData): configData should NEVER be None ")
+    print(f"ERROR(megeConfigData): Stopped merge at {thePath}")
+    return
+
+  if type(configData) != type(newConfigData) :
+    print(f"ERROR(mergeConfigData): Incompatible types {type(configData)} and {type(newConfigData)} while trying to merge Config data at {thePath}")
+    print(f"ERROR(mergeConfigData): Stopped merge at {thePath}")
+    return
+
+  if type(configData) is dict :
+    for key, value in newConfigData.items() :
+      if key not in configData :
+        configData[key] = copy.deepcopy(value)
+      elif type(configData[key]) is dict :
+        mergeConfigData(configData[key], value, thePath+'.'+key)
+      elif type(configData[key]) is list :
+        for aValue in value :
+          configData[key].append(copy.deepcopy(aValue))
+      else :
+        configData[key] = copy.deepcopy(value)
+  elif type(configData) is list :
+    for value in newConfigData :
+      configData.append(copy.deepcopy(value))
+  else :
+    print("ERROR(mergeConfigData): configData MUST be either a dictionary or an array.")
+    print(f"ERROR(mergeConfigData): Stoping merge at {thePath}")
+    return
+
+def loadConfig(cliArgs, defaultConfig={}) :
+  newConfig = {}
+  if defaultConfig : mergeConfigData(newConfig, defaultConfig, '.')
+
   verbose = cliArgs['verbose']
   #print("--command line config------------------------------------------")
   #print(yaml.dump(cliArgs))
 
   if cliArgs['config'] :
     #print(cliArgs['config'])
-    config = {}
-    configPath = os.path.abspath(os.path.expanduser(cliArgs['config'])) 
-    with open(configPath, 'r') as configFile :
-      config = yaml.safe_load(configFile)
+    fConfig = {}
+    fConfigPath = os.path.abspath(os.path.expanduser(cliArgs['config']))
+    with open(fConfigPath, 'r') as fConfigFile :
+      fConfig = yaml.safe_load(fConfigFile)
     #print(yaml.dump(config))
-    if config :
-      for aKey, aValue in config.items() :
-        #print(f"checking key {aKey}")
-        if aKey not in cliArgs or not cliArgs[aKey] :
-          cliArgs[aKey] = aValue
-    
+    mergeConfigData(newConfig, fConfig, '.')
+
     #print("--after loading config-----------------------------------------")
     #print(yaml.dump(cliArgs))
     #print("---------------------------------------------------------------")
+
+  mergeConfigData(newConfig, cliArgs, '.')
+  cliArgs = newConfig
 
   if cliArgs['import'] :
     for aPath in cliArgs['import'] :
@@ -61,7 +97,7 @@ def loadConfig(cliArgs) :
   if cliArgs['loadActions'] :
     for anActionModule in cliArgs['loadActions'] :
       if verbose : print(f"Loading actions from {anActionModule}")
-      try : 
+      try :
         actions = importlib.import_module(anActionModule)
         if not actions :
           print("No actions loaded")
@@ -83,7 +119,7 @@ def loadConfig(cliArgs) :
           return
       elif os.sep in aGrammar :
         aPath = os.path.abspath(os.path.expanduser(aGrammar))
-        try : 
+        try :
           Grammar.loadFromFile(aPath)
         except Exception as err :
           print(repr(err))
