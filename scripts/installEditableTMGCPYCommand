@@ -4,20 +4,20 @@
 # script to run the tmgc command anywhere in a user's
 # workspace.
 
-cmdScript=$(pwd)/src/tmgc.mjs
+cmdScript=$(pwd)/.venv/bin/tmgc
 
-cat << CMD_SCRIPT > $HOME/.local/bin/tmgc
+cat << CMD_SCRIPT > $HOME/.local/bin/tmgcpy
 #!/bin/sh
 
 # This shell script was created by the tmGrammar tool
-#       './scripts/installEditableTMGCCommand'
+#       './scripts/installEditableTMGCPYCommand'
 # script.
 
-exec node $cmdScript \$@
+exec $cmdScript \$@
 CMD_SCRIPT
 
-chmod a+x $HOME/.local/bin/tmgc
+chmod a+x $HOME/.local/bin/tmgcpy
 
 echo ""
-echo "Editable tmgc command has been created"
+echo "Editable tmgcpy command has been created"
 echo ""

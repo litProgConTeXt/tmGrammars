@@ -1,0 +1,33 @@
+{
+  "name": "tmgrammars",
+  "version": "0.0.1",
+  "description": "A javascript tool to manipulate and run TextMate Grammars",
+  "main": "src/tmgc.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/litProgConTeXt/tmGrammars.git"
+  },
+  "keywords": [
+    "TextMate",
+    "Grammars"
+  ],
+  "author": "Stephen Gaito",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/litProgConTeXt/tmGrammars/issues"
+  },
+  "homepage": "https://github.com/litProgConTeXt/tmGrammars#readme",
+  "dependencies": {
+    "commander": "^10.0.1",
+    "deepmerge": "^4.3.1",
+    "toml": "^3.0.0",
+    "vscode-languageserver-textdocument": "^1.0.8",
+    "vscode-oniguruma": "^1.7.0",
+    "vscode-textmate": "^9.0.0",
+    "yaml": "^2.2.1"
+  }
+}
