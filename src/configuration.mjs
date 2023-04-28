@@ -6,8 +6,9 @@ import path  from "path"
 import toml  from "toml"
 import yaml  from "yaml"
 
-import { ScopeActions } from "./scopeActions.mjs"
-import { Grammars     } from "./grammars.mjs"    
+import { DocumentCache } from "./documents.mjs"
+import { Grammars      } from "./grammars.mjs"
+import { ScopeActions  } from "./scopeActions.mjs"
 
 // Standard configuration for the LPiC projects
 
@@ -23,6 +24,7 @@ class Config {
       .option('--actions', 'Show the actions')
       .option('--grammar <baseScope...>', 'Show the (raw) grammar')
       .option('--grammars', 'Show all (known raw) grammars')
+      .option('--test <file>', 'Test the loaded grammars using a document')
   }
 
   static normalizePath(aPath) {
@@ -118,6 +120,13 @@ class Config {
         Grammars.printGrammar(aBaseScope)
       })
       process.exit(0)
+    }
+
+    if (config['test']) {
+      const aDocPath = config['test']
+      const aDoc = await DocumentCache.loadFromFile(aDocPath)
+      await Grammars.testGrammarsUsing(aDoc)
+      process.exit(0)      
     }
   }
 }

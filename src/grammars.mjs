@@ -54,6 +54,85 @@ class Grammars {
     });
   }
 
+  static chooseBaseScope(aDocPath, aFirstLine) {
+    // start by checking first line matches...
+    for (const [aBaseScope, aGrammar] of Object.entries(Grammars.scope2grammar)) {
+      if (aGrammar['firstLineMatch']) {
+        //console.log(`Checking firstLineMatch for ${aBaseScope}`)
+        if (aFirstLine.match(aGrammar['firstLineMatch'])) return aBaseScope
+      }
+    }
+    // since none of the first line matches found a match...
+    // ... move on to checking the file extension
+    for (const [aBaseScope, aGrammar] of Object.entries(Grammars.scope2grammar)) {
+      if (aGrammar['fileTypes']) {
+        for (const [anIndex, aFileExt] of aGrammar['fileTypes'].entries()) {
+          //console.log(`Checking ${aBaseScope} file type (${aFileExt}) against [${aDocPath}]`)
+          if (aDocPath.endsWith(aFileExt)) return aBaseScope
+        }
+      }
+    }
+    console.log("chooseBaseScope: no match found!")
+  }
+
+  static async testGrammarsUsing(aDoc) {
+    const aBaseScope = Grammars.chooseBaseScope(aDoc.filePath, aDoc.docLines[0])
+    if (!aBaseScope) {
+      console.log("WARNING: Could not find the base scope for the document")
+      console.log(`  ${aDoc.docName}`)
+      return
+    }
+    const aGrammar = await Grammars.registry.loadGrammar(aBaseScope)
+    let ruleStack = vsctm.INITIAL
+    aDoc.docLines.forEach(function(aLine){
+      const lineTokens = aGrammar.tokenizeLine(aLine, ruleStack)
+      console.log(`\nTokenizing line: >>${aLine}<< (${aLine.length})`);
+      lineTokens.tokens.forEach(function(aToken){
+        console.log(` - token from ${aToken.startIndex} to ${aToken.endIndex} ` +
+          `(${aLine.substring(aToken.startIndex, aToken.endIndex)}) ` +
+          `with scopes:`
+        );
+        aToken.scopes.forEach(function(aScope){
+          console.log(`     ${aScope}`)
+      })
+      })
+      ruleStack = lineTokens.ruleStack;
+    })
+  }
+  /*
+  function testGrammar(testFile) {
+    const text = testFile.toString().split('\n');
+    var scopeFound = False ;
+    for (const [aScope, aGrammar] of Object.entries(scope2grammar)) {
+      if (text[0].match(aGrammar['regex'])) {
+        scopeFound = True;
+        // Load the JavaScript grammar and any other grammars included by it async.
+        registry.loadGrammar(aScope).then(grammar => {
+          let ruleStack = vsctm.INITIAL;
+          for (let i = 0; i < text.length; i++) {
+            const line = text[i];
+            const lineTokens = grammar.tokenizeLine(line, ruleStack);
+            console.log(`\nTokenizing line: >>${line}<< (${line.length})`);
+            for (let j = 0; j < lineTokens.tokens.length; j++) {
+              const token = lineTokens.tokens[j];
+              console.log(` - token from ${token.startIndex} to ${token.endIndex} ` +
+                `(${line.substring(token.startIndex, token.endIndex)}) ` +
+                `with scopes:`
+              );
+              token.scopes.forEach(
+                aScope => console.log(`     ${aScope}`)
+              );
+            }
+            ruleStack = lineTokens.ruleStack;
+          }
+        });
+      }
+    }
+  
+    if (! scopeFound) console.log("No matching grammar found!")
+  }
+*/  
+
   static async loadGrammarFrom(aGrammarPath, verbose) {
     var aGrammar = {}
     if (aGrammarPath.endsWith('.json')) {
