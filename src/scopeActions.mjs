@@ -1,5 +1,5 @@
 import fsp from "fs/promises"
-import merge from "deepmerge"
+import deepcopy from "deepcopy"
 import path from "path"
 
 import { Config } from "./configuration.mjs"
@@ -15,7 +15,7 @@ class ScopeAction {
   // we may want a "__str__" function...
 
   run() {
-    return this.func(this.scopeStr, merge(this.callArgs)) ;
+    return this.func(this.scopeStr, deepcopy(this.callArgs)) ;
   }
 }
 
@@ -28,28 +28,31 @@ class ScopeActions {
     var scopeParts = scopeStr.split('.') ;
     var curScope = ScopeActions.actions ;
     scopeParts.forEach( aScopePart => {
-      if (!curScope.hasOwnProperty(aScopePart)) {
+      if (!curScope[aScopePart]) {
         curScope[aScopePart] = {} ;
       }
       curScope = curScope[aScopePart] ;
     }) ;
-    curScope['__action__'] = new ScopeAction(
-      scopeStr, funcPath, aFunc, merge(callArgs, {}) 
-    ) ;
+    if (!curScope['__actions__']) {
+      curScope['__actions__'] = []
+    }
+    curScope['__actions__'].push(new ScopeAction(
+      scopeStr, funcPath, aFunc, deepcopy(callArgs, {}) 
+    ))
   }
   
   static getAction(scopeStr) {
     var scopeParts = scopeStr.split('.')
     var curScope   = ScopeActions.actions
     scopeParts.forEach( aScopePart => {
-      if (curScope.hasOwnProperty(aScopePart)) {
+      if (curScope[aScopePart]) {
         curScope = curScope[aScopePart]
       } else {
         return null
       }
     })
-    if (curScope.hasOwnProperty('__action__')) {
-      return curScope['__action__']
+    if (curScope['__actions__']) {
+      return curScope['__actions__']
     }
     return null
   }
@@ -59,9 +62,11 @@ class ScopeActions {
   }
 
   static run(scopeStr) {
-    scopeAction = ScopeActions.getAction(scopeStr)
-    if (!scopeAction) { return null }
-    return scopeAction.run()
+    const scopeActions = ScopeActions.getAction(scopeStr)
+    if (!scopeActions) { return null }
+    scopeActions.forEach(function(anAction){
+      anAction.run()
+    })
   }
 
   static getAllActions(scopeStr) {
@@ -69,13 +74,13 @@ class ScopeActions {
     var scopeParts = scopeStr.split('.') 
     var curScope   = ScopeActions.actions
     scopeParts.forEach( aScopePart => {
-      if (curScope.hasOwnProperty(aScopePart)) {
+      if (curScope[aScopePart]) {
         curScope = curScope[aScopePart]
       } else {
         return actionsFound
       }
-      if (curScope.hasOwnProperty('__action__')) {
-        actionsFound.unshift(curScope['__action__'])
+      if (curScope['__actions__']) {
+        actionsFound.unshift(curScope['__actions__'])
       }
     })
     return actionsFound
@@ -86,9 +91,21 @@ class ScopeActions {
   }
 
   static runMostSpecific(scopeStr) {
-    someActions = ScopeActions.getAllActions(scopeStr)
+    const someActions = ScopeActions.getAllActions(scopeStr)
     if (someActions.length < 1) { return null }
-    return someActions[0].run()
+    someActions[0].forEach(function(anAction){
+      anAction.run()
+    })
+  }
+
+  static runAll(scopeStr) {
+    const someActions = ScopeActions.getAllActions(scopeStr)
+    if (someActions.length < 1) { return null }
+    someActions.forEach(function(someScopedActions){
+      someScopedActions.forEach(function(anAction){
+        anAction.run()
+      })
+    })
   }
 
   static async loadActionsFrom(aDir, verbose) {
@@ -97,7 +114,6 @@ class ScopeActions {
     const dir = await fsp.opendir(aDir)
     const actionsToLoad = []
     for await (const dirEnt of dir) {
-      //console.log(dirEnt.name)
       if (!dirEnt.name.endsWith(".mjs")) continue
       actionsToLoad.push(path.join(aDir, dirEnt.name))
     }
@@ -110,19 +126,32 @@ class ScopeActions {
     }))
   }
 
-  static _printActions(baseScope, actions) {
-    if (actions.hasOwnProperty('__action__')) {
-      console.log(actions['__action__'])
-      return
-    }
-    Object.keys(actions).sort().forEach( aKey => {
-      ScopeActions._printActions(baseScope+'.'+aKey, actions[aKey])
+  static _forEach(baseScope, actions, aCallBackFunc) {
+    Object.keys(actions).sort().forEach(function(aKey){
+      if (aKey === '__actions__') {
+        actions['__actions__'].forEach(function(anAction){
+          aCallBackFunc(baseScope, anAction)
+        })
+      } else {
+        var newKey = aKey
+        if (baseScope) newKey = baseScope+'.'+aKey
+        ScopeActions._forEach(newKey, actions[aKey], aCallBackFunc)
+      }
     })
+  }
+
+  // aCallBackFunc(aScope, anAction) is called for each ScopeAction
+  // in the ScopeActions
+  //
+  static forEach(aCallBackFunc) {
+    ScopeActions._forEach('', ScopeActions.actions, aCallBackFunc)
   }
 
   static printActions() {
     console.log("--actions-----------------------------------------------------")
-    ScopeActions._printActions('', ScopeActions.actions)
+    ScopeActions.forEach(function(aBaseScope, anAction){
+      console.log(anAction)
+    })
     console.log("--------------------------------------------------------------")
   }
 

@@ -1,12 +1,13 @@
 
 import fs    from "fs"
-import merge from "deepmerge"
+import { deepmerge } from "deepmerge-ts"
 import os    from "os"
 import path  from "path"
 import toml  from "toml"
 import yaml  from "yaml"
 
 import { ScopeActions } from "./scopeActions.mjs"
+import { Grammars     } from "./grammars.mjs"    
 
 // Standard configuration for the LPiC projects
 
@@ -20,7 +21,8 @@ class Config {
       .option('-lg, --loadGrammar <file...>', 'Load a grammar from the file system or a Python resource (JSON|PLIST)')
       .option('--prune',  'Prune unused patterns from grammar')
       .option('--actions', 'Show the actions')
-      .option('--grammar', 'Show the (raw) grammar')
+      .option('--grammar <baseScope...>', 'Show the (raw) grammar')
+      .option('--grammars', 'Show all (known raw) grammars')
   }
 
   static normalizePath(aPath) {
@@ -46,7 +48,7 @@ class Config {
   static async loadConfig(cliArgs, defaultConfig) {
     var config = {};
     if (defaultConfig) {
-      config = merge(config, defaultConfig) ;
+      config = deepmerge(config, defaultConfig) ;
     }
   
     const cliOpts = cliArgs.opts()
@@ -70,10 +72,10 @@ class Config {
       } else if (lcConfigPath.endsWith('json')) {
         fileConfig = JSON.parse(configText) ;
       }
-      config = merge(config, fileConfig) ;
+      config = deepmerge(config, fileConfig) ;
     }
     
-    config = merge(config, cliOpts) ;
+    config = deepmerge(config, cliOpts) ;
   
     if (verbose) {
       console.log("--command line config-------------------------------------")
@@ -83,14 +85,38 @@ class Config {
   
     if (0 < config.loadActions.length) {
       await Promise.all(config.loadActions.map( async (anActionsPath) => {
-        if (verbose) console.log(`starting to loadActions from [${anActionsPath}]`)
+        if (verbose) console.log(`starting to load actions from [${anActionsPath}]`)
         await ScopeActions.loadActionsFrom(anActionsPath, config.verbose).catch(err => console.log(err))
-        if (verbose) console.log(`finished loading loadActions from [${anActionsPath}]`)
+        if (verbose) console.log(`finished loading actions from [${anActionsPath}]`)
       }))
     }
   
     if (config['actions']) {
       ScopeActions.printActions()
+      process.exit(0)
+    }
+
+    if (0 < config.loadGrammar.length) {
+      await Promise.all(config.loadGrammar.map( async (aGrammarPath) => {
+        if (verbose) console.log(`starting to load grammar from [${aGrammarPath}]`)
+        await Grammars.loadGrammarFrom(aGrammarPath, config.verbose).catch(err => console.log(err))
+        if (verbose) console.log(`finished loading grammar from [${aGrammarPath}]`)
+      }))     
+    }
+
+    if (config['prune']) {
+      Grammars.pruneGrammars(config.verbose)
+    }
+
+    if (config['grammars']) {
+      Grammars.printAllGrammars()
+      process.exit(0)
+    }
+
+    if (config['grammar']) {
+      config['grammar'].forEach(function(aBaseScope){
+        Grammars.printGrammar(aBaseScope)
+      })
       process.exit(0)
     }
   }

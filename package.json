@@ -23,7 +23,8 @@
   "homepage": "https://github.com/litProgConTeXt/tmGrammars#readme",
   "dependencies": {
     "commander": "^10.0.1",
-    "deepmerge": "^4.3.1",
+    "deepcopy": "^2.1.0",
+    "deepmerge-ts": "^5.1.0",
     "toml": "^3.0.0",
     "vscode-languageserver-textdocument": "^1.0.8",
     "vscode-oniguruma": "^1.7.0",

@@ -60,3 +60,5 @@ class DocumentCache {
   }
 
 }
+
+export { DocumentCache }
