@@ -24,7 +24,8 @@ class Config {
       .option('--actions', 'Show the actions')
       .option('--grammar <baseScope...>', 'Show the (raw) grammar')
       .option('--grammars', 'Show all (known raw) grammars')
-      .option('--test <file>', 'Test the loaded grammars using a document')
+      .option('-ta, --testActions <file>', 'Test the loaded actions using a document')
+      .option('-tg, --testGrammars <file>', 'Test the loaded grammars using a document')
   }
 
   static normalizePath(aPath) {
@@ -107,7 +108,8 @@ class Config {
     }
 
     if (config['prune']) {
-      Grammars.pruneGrammars(config.verbose)
+      const scopesWithActions = ScopeActions.getScopesWithActions()
+      Grammars.pruneGrammars(scopesWithActions, config.verbose)
     }
 
     if (config['grammars']) {
@@ -122,8 +124,15 @@ class Config {
       process.exit(0)
     }
 
-    if (config['test']) {
-      const aDocPath = config['test']
+    if (config['testActions']) {
+      const aDocPath = config['testActions']
+      const aDoc = await DocumentCache.loadFromFile(aDocPath)
+      await Grammars.testActionsUsing(aDoc)
+      process.exit(0)      
+    }
+
+    if (config['testGrammars']) {
+      const aDocPath = config['testGrammars']
       const aDoc = await DocumentCache.loadFromFile(aDocPath)
       await Grammars.testGrammarsUsing(aDoc)
       process.exit(0)      

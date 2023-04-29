@@ -99,39 +99,43 @@ class Grammars {
       ruleStack = lineTokens.ruleStack;
     })
   }
-  /*
-  function testGrammar(testFile) {
-    const text = testFile.toString().split('\n');
-    var scopeFound = False ;
-    for (const [aScope, aGrammar] of Object.entries(scope2grammar)) {
-      if (text[0].match(aGrammar['regex'])) {
-        scopeFound = True;
-        // Load the JavaScript grammar and any other grammars included by it async.
-        registry.loadGrammar(aScope).then(grammar => {
-          let ruleStack = vsctm.INITIAL;
-          for (let i = 0; i < text.length; i++) {
-            const line = text[i];
-            const lineTokens = grammar.tokenizeLine(line, ruleStack);
-            console.log(`\nTokenizing line: >>${line}<< (${line.length})`);
-            for (let j = 0; j < lineTokens.tokens.length; j++) {
-              const token = lineTokens.tokens[j];
-              console.log(` - token from ${token.startIndex} to ${token.endIndex} ` +
-                `(${line.substring(token.startIndex, token.endIndex)}) ` +
-                `with scopes:`
-              );
-              token.scopes.forEach(
-                aScope => console.log(`     ${aScope}`)
-              );
-            }
-            ruleStack = lineTokens.ruleStack;
-          }
-        });
-      }
+
+  static async testActionsUsing(aDoc) {
+    const aBaseScope = Grammars.chooseBaseScope(aDoc.filePath, aDoc.docLines[0])
+    if (!aBaseScope) {
+      console.log("WARNING: Could not find the base scope for the document")
+      console.log(`  ${aDoc.docName}`)
+      return
     }
-  
-    if (! scopeFound) console.log("No matching grammar found!")
+    const scopesWithActions = ScopeActions.getScopesWithActions()
+    const aGrammar = await Grammars.registry.loadGrammar(aBaseScope)
+    let ruleStack = vsctm.INITIAL
+    aDoc.docLines.forEach(function(aLine){
+      const lineTokens = aGrammar.tokenizeLine(aLine, ruleStack)
+      console.log(`\nTokenizing line: >>${aLine}<< (${aLine.length})`);
+      lineTokens.tokens.forEach(function(aToken){
+        console.log(` - token from ${aToken.startIndex} to ${aToken.endIndex} ` +
+          `(${aLine.substring(aToken.startIndex, aToken.endIndex)}) ` +
+          `with scopes:`
+        );
+        aToken.scopes.forEach(function(aScope){
+          console.log(`     ${aScope}`)
+        })
+        aToken.scopes.forEach(function(aScope){
+          if (scopesWithActions[aScope]) {
+            console.log("-----------------------------------------------------")
+            console.log(aScope)
+            scopesWithActions[aScope].forEach(async function(anAction){
+              await anAction.run()
+            })
+            Structures.printAllStructures()
+            console.log("-----------------------------------------------------")
+          }
+        })
+      })
+      ruleStack = lineTokens.ruleStack;
+    })
   }
-*/  
 
   static async loadGrammarFrom(aGrammarPath, verbose) {
     var aGrammar = {}
@@ -159,7 +163,7 @@ class Grammars {
   //////////////////////////////////////////////////////////////////////////////
   // (recursively) prune all known grammars
 
-  static pruneGrammars(verbose) {
+  static pruneGrammars(scopes2keep, verbose) {
     if (verbose) console.log("--PRUNING-GRAMMARS------------------------------")
     const s2g = Grammars.scope2grammar = {}
     for (const [aScope, aGrammar] of Object.entries(Grammars.originalScope2grammar)){
@@ -167,10 +171,7 @@ class Grammars {
     }
     
     const knownBaseScopes = {} // prevent infinite loops of grammars checking
-    const scopes2keep     = {} // map of scopes with actions
-    ScopeActions.forEach(function(aScope, anAction){
-      scopes2keep[aScope] = True
-    })
+
     function keepScope(aScope) {
       if (!aScope) return False
       if (scopes2keep[aScope]) return True
@@ -257,6 +258,8 @@ class Grammars {
     }
     if (verbose) console.log("------------------------------------------------")
   }
+
+  //////////////////////////////////////////////////////////////////////////////
 
   static printGrammar(aBaseScope) {
     if (!Grammars.scope2grammar[aBaseScope]) return

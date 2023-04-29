@@ -47,6 +47,19 @@ class Structures {
     return Structures.structs[aStructureKey]
   }
 
+  static printStructure(aStructureName){
+    if (!Structures.structs[aStructureName]) return
+    console.log("--structure--------------------------------------------------")
+    console.log(aStructureName)
+    console.log("-------------------------")
+    console.log(yaml.stringify(Structures.structs[aStructureName]))
+  }
+
+  static printAllStructures() {
+    Object.keys(Structures.structs).sort().forEach(function(aStructureName){
+      Structures.printStructure(aStructureName)
+    })
+  }
 }
 
 export { SNode, Structures }

@@ -147,6 +147,14 @@ class ScopeActions {
     ScopeActions._forEach('', ScopeActions.actions, aCallBackFunc)
   }
 
+  static getScopesWithActions() {
+    const scopesWithActions = {}
+    ScopeActions.forEach(function(aScope, anAction){
+      scopesWithActions[aScope] = anAction
+    })
+    return scopesWithActions
+  }
+
   static printActions() {
     console.log("--actions-----------------------------------------------------")
     ScopeActions.forEach(function(aBaseScope, anAction){
