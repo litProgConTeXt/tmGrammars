@@ -2,7 +2,7 @@
   "name": "tmgrammars",
   "version": "0.0.1",
   "description": "A javascript tool to manipulate and run TextMate Grammars",
-  "main": "src/tmgc.js",
+  "main": "src/tmgt.js",
   "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -22,10 +22,10 @@
   },
   "homepage": "https://github.com/litProgConTeXt/tmGrammars#readme",
   "dependencies": {
+    "@ltd/j-toml": "^1.38.0",
     "commander": "^10.0.1",
     "deepcopy": "^2.1.0",
     "deepmerge-ts": "^5.1.0",
-    "toml": "^3.0.0",
     "vscode-languageserver-textdocument": "^1.0.8",
     "vscode-oniguruma": "^1.7.0",
     "vscode-textmate": "^9.0.0",

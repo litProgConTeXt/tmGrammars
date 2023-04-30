@@ -1,9 +1,9 @@
 
-import fs    from "fs"
+import fsp   from "fs/promises"
 import { deepmerge } from "deepmerge-ts"
 import os    from "os"
 import path  from "path"
-import toml  from "toml"
+import toml  from "@ltd/j-toml"
 import yaml  from "yaml"
 
 import { DocumentCache } from "./documents.mjs"
@@ -20,12 +20,7 @@ class Config {
       .option('-c, --config <file>',  'Load a configuration file (YAML|TOML|JSON)')
       .option('-la, --loadActions <file...>', 'Load actions from a CommonJS module')
       .option('-lg, --loadGrammar <file...>', 'Load a grammar from the file system or a Python resource (JSON|PLIST)')
-      .option('--prune',  'Prune unused patterns from grammar')
-      .option('--actions', 'Show the actions')
-      .option('--grammar <baseScope...>', 'Show the (raw) grammar')
-      .option('--grammars', 'Show all (known raw) grammars')
-      .option('-ta, --testActions <file>', 'Test the loaded actions using a document')
-      .option('-tg, --testGrammars <file>', 'Test the loaded grammars using a document')
+      .option('-s, --save <file>', 'Save the current configuration into file (YAML|TOML|JSON)')
   }
 
   static normalizePath(aPath) {
@@ -57,13 +52,13 @@ class Config {
     const cliOpts = cliArgs.opts()
     const verbose = cliOpts.verbose ;
     if (verbose) {
-      console.log("--command line config-------------------------------------")
+      console.log("\n--command line config--------------------------------------")
       console.log(yaml.stringify(cliOpts))
-      console.log("----------------------------------------------------------")
+      console.log("-----------------------------------------------------------")
     }
   
     if (cliOpts.config) {
-      const configText = fs.readFileSync(
+      const configText = await fsp.readFile(
         cliOpts.config, {encoding: 'utf8', flag: 'r'}
       );
       var fileConfig = {}
@@ -81,17 +76,23 @@ class Config {
     config = deepmerge(config, cliOpts) ;
   
     if (verbose) {
-      console.log("--command line config-------------------------------------")
+      console.log("\n--command line config--------------------------------------")
       console.log(yaml.stringify(config))
-      console.log("----------------------------------------------------------")
+      console.log("-----------------------------------------------------------")
     }
   
     if (0 < config.loadActions.length) {
+      if (verbose) {
+        console.log("\n--loading actions----------------------------------------")
+      }
       await Promise.all(config.loadActions.map( async (anActionsPath) => {
         if (verbose) console.log(`starting to load actions from [${anActionsPath}]`)
         await ScopeActions.loadActionsFrom(anActionsPath, config.verbose).catch(err => console.log(err))
         if (verbose) console.log(`finished loading actions from [${anActionsPath}]`)
       }))
+      if (verbose) {
+        console.log("---------------------------------------------------------")
+      }
     }
   
     if (config['actions']) {
@@ -100,43 +101,41 @@ class Config {
     }
 
     if (0 < config.loadGrammar.length) {
+      if (verbose) {
+        console.log("\n--loading grammars---------------------------------------")
+      }
       await Promise.all(config.loadGrammar.map( async (aGrammarPath) => {
         if (verbose) console.log(`starting to load grammar from [${aGrammarPath}]`)
         await Grammars.loadGrammarFrom(aGrammarPath, config.verbose).catch(err => console.log(err))
         if (verbose) console.log(`finished loading grammar from [${aGrammarPath}]`)
       }))     
+      if (verbose) {
+        console.log("---------------------------------------------------------")
+      }
     }
 
-    if (config['prune']) {
-      const scopesWithActions = ScopeActions.getScopesWithActions()
-      Grammars.pruneGrammars(scopesWithActions, config.verbose)
-    }
-
-    if (config['grammars']) {
-      Grammars.printAllGrammars()
-      process.exit(0)
-    }
-
-    if (config['grammar']) {
-      config['grammar'].forEach(function(aBaseScope){
-        Grammars.printGrammar(aBaseScope)
+    if (config['save']) {
+      const savePath = config['save']
+      const lcSavePath = savePath.toLowerCase()
+      var configStr = ""
+      if (lcSavePath.endsWith('yaml') || lcSavePath.endsWith('yml')) {
+        configStr = yaml.stringify(config)
+      } else if (lcSavePath.endsWith('toml')) {
+        configStr = toml.stringify(config, {
+          'newline' : '\n',
+          'indent'  : 2
+        })
+      } else if (lcSavePath.endsWith('json')) {
+        configStr = JSON.stringify(config, null, 2)
+      }
+      await fsp.writeFile(savePath, configStr, {
+        'encoding' : 'utf8',
+        'mode'     : 0o644
       })
       process.exit(0)
     }
 
-    if (config['testActions']) {
-      const aDocPath = config['testActions']
-      const aDoc = await DocumentCache.loadFromFile(aDocPath)
-      await Grammars.testActionsUsing(aDoc)
-      process.exit(0)      
-    }
-
-    if (config['testGrammars']) {
-      const aDocPath = config['testGrammars']
-      const aDoc = await DocumentCache.loadFromFile(aDocPath)
-      await Grammars.testGrammarsUsing(aDoc)
-      process.exit(0)      
-    }
+    return config
   }
 }
 

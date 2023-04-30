@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# This bash script uses the current working directory to create a simple
+# script to run the tmgt command anywhere in a user's
+# workspace.
+
+cmdScript=$(pwd)/src/tmgt.mjs
+
+cat << CMD_SCRIPT > $HOME/.local/bin/tmgt
+#!/bin/sh
+
+# This shell script was created by the tmGrammar tool
+#       './scripts/installEditableTMGTCommand'
+# script.
+
+exec node $cmdScript \$@
+CMD_SCRIPT
+
+chmod a+x $HOME/.local/bin/tmgt
+
+echo ""
+echo "Editable tmgt command has been created"
+echo ""
