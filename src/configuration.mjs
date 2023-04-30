@@ -1,14 +1,30 @@
 
-import fsp   from "fs/promises"
-import { deepmerge } from "deepmerge-ts"
-import os    from "os"
-import path  from "path"
-import toml  from "@ltd/j-toml"
-import yaml  from "yaml"
+import { Command, Option } from "commander"
+import fsp                 from "fs/promises"
+import { deepmerge       } from "deepmerge-ts"
+import os                  from "os"
+import path                from "path"
+import toml                from "@ltd/j-toml"
+import yaml                from "yaml"
 
-import { DocumentCache } from "./documents.mjs"
 import { Grammars      } from "./grammars.mjs"
 import { ScopeActions  } from "./scopeActions.mjs"
+
+function appendArg(newArg, oldArg) {
+  if (!oldArg) oldArg = []
+  if (!Array.isArray(oldArg)) oldArg = [ oldArg ]
+  oldArg.push(newArg)
+  return oldArg
+}
+
+class AppendableCommand extends Command {
+  optionAppend(flags, description, fn, defaultValue) {
+    return this.addOption(
+      new Option(flags, description, fn, defaultValue)
+      .argParser(appendArg)
+    )
+  }    
+}  
 
 // Standard configuration for the LPiC projects
 
@@ -18,10 +34,10 @@ class Config {
     cliArgs
       .option('-v, --verbose', 'Be verbose')
       .option('-c, --config <file>',  'Load a configuration file (YAML|TOML|JSON)')
-      .option('-la, --loadActions <file...>', 'Load actions from a CommonJS module')
-      .option('-lg, --loadGrammar <file...>', 'Load a grammar from the file system or a Python resource (JSON|PLIST)')
+      .optionAppend('-la, --loadActions <file>', 'Load actions from a CommonJS module')
+      .optionAppend('-lg, --loadGrammar <file>', 'Load a grammar from the file system or a Python resource (JSON|PLIST)')
       .option('-s, --save <file>', 'Save the current configuration into file (YAML|TOML|JSON)')
-  }
+  }    
 
   static normalizePath(aPath) {
     var pathPrefix = ""
@@ -29,21 +45,21 @@ class Config {
       pathPrefix = os.homedir()
       if (!aPath.startsWith('~/') && !aPath.startsWith('~\\') && aPath !== '~') {
         pathPrefix = path.dirname(pathPrefix)
-      }
+      }  
       aPath = aPath.replace(/^~/, '')
     } else if (aPath.startsWith('.')) {
       pathPrefix = process.cwd()
-    }
+    }  
     if (pathPrefix) {
       aPath = path.join(
         pathPrefix,
         aPath
-      )
-    }
+      )  
+    }  
     return path.normalize(aPath)
-  }
+  }  
 
-  static async loadConfig(cliArgs, defaultConfig) {
+  static async loadConfig(cliArgs, defaultConfig, preSaveFunc) {
     var config = {};
     if (defaultConfig) {
       config = deepmerge(config, defaultConfig) ;
@@ -51,38 +67,26 @@ class Config {
   
     const cliOpts = cliArgs.opts()
     const verbose = cliOpts.verbose ;
-    if (verbose) {
-      console.log("\n--command line config--------------------------------------")
-      console.log(yaml.stringify(cliOpts))
-      console.log("-----------------------------------------------------------")
-    }
-  
     if (cliOpts.config) {
       const configText = await fsp.readFile(
         cliOpts.config, {encoding: 'utf8', flag: 'r'}
-      );
-      var fileConfig = {}
-      const lcConfigPath = cliOpts.config.toLowerCase() ;
-      if (lcConfigPath.endsWith('yaml') || lcConfigPath.endsWith('yml')) {
-        fileConfig = yaml.parse(configText) ;
-      } else if (lcConfigPath.endsWith('toml')) {
-        fileConfig = toml.parse(configText) ;
-      } else if (lcConfigPath.endsWith('json')) {
-        fileConfig = JSON.parse(configText) ;
+        );
+        var fileConfig = {}
+        const lcConfigPath = cliOpts.config.toLowerCase() ;
+        if (lcConfigPath.endsWith('yaml') || lcConfigPath.endsWith('yml')) {
+          fileConfig = yaml.parse(configText) ;
+        } else if (lcConfigPath.endsWith('toml')) {
+          fileConfig = toml.parse(configText) ;
+        } else if (lcConfigPath.endsWith('json')) {
+          fileConfig = JSON.parse(configText) ;
+        }
+        config = deepmerge(config, fileConfig) ;
       }
-      config = deepmerge(config, fileConfig) ;
-    }
-    
-    config = deepmerge(config, cliOpts) ;
-  
-    if (verbose) {
-      console.log("\n--command line config--------------------------------------")
-      console.log(yaml.stringify(config))
-      console.log("-----------------------------------------------------------")
-    }
-  
-    if (0 < config.loadActions.length) {
-      if (verbose) {
+      
+      config = deepmerge(config, cliOpts) ;
+      
+      if (0 < config.loadActions.length) {
+        if (verbose) {
         console.log("\n--loading actions----------------------------------------")
       }
       await Promise.all(config.loadActions.map( async (anActionsPath) => {
@@ -95,11 +99,6 @@ class Config {
       }
     }
   
-    if (config['actions']) {
-      ScopeActions.printActions()
-      process.exit(0)
-    }
-
     if (0 < config.loadGrammar.length) {
       if (verbose) {
         console.log("\n--loading grammars---------------------------------------")
@@ -113,7 +112,21 @@ class Config {
         console.log("---------------------------------------------------------")
       }
     }
-
+    
+    if (preSaveFunc) preSaveFunc(config)
+    
+    if (verbose) {
+      console.log("\n--command line config--------------------------------------")
+      console.log(yaml.stringify(cliOpts))
+      console.log("-----------------------------------------------------------")
+    }
+    
+    if (verbose) {
+      console.log("\n--config---------------------------------------------------")
+      console.log(yaml.stringify(config))
+      console.log("-----------------------------------------------------------")
+    }
+  
     if (config['save']) {
       const savePath = config['save']
       const lcSavePath = savePath.toLowerCase()
@@ -139,4 +152,4 @@ class Config {
   }
 }
 
-export { Config }
+export { Config, AppendableCommand }

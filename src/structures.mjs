@@ -34,7 +34,7 @@ class Structure {
 
 class Structures {
 
-  static strucs = {}
+  static structs = {}
 
   static newStructure(aStructureKey, aStructureValue) {
     if (!Structures.structs[aStructureKey]) {
@@ -45,6 +45,10 @@ class Structures {
 
   static getStructure(aStructureKey) {
     return Structures.structs[aStructureKey]
+  }
+
+  static getStructureNames() {
+    return Object.keys(Structures.structs).sort()
   }
 
   static printStructure(aStructureName){

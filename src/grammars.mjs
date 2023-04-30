@@ -75,7 +75,7 @@ class Grammars {
     console.log("chooseBaseScope: no match found!")
   }
 
-  static async testGrammarsUsing(aDoc) {
+  static async traceParseOf(aDoc, config) {
     const aBaseScope = Grammars.chooseBaseScope(aDoc.filePath, aDoc.docLines[0])
     if (!aBaseScope) {
       console.log("WARNING: Could not find the base scope for the document")
@@ -158,6 +158,43 @@ class Grammars {
     for (const [aScope, aGrammar] of Object.entries(Grammars.originalScope2grammar)) {
       Grammars.scope2grammar[aScope] = deepcopy(aGrammar)
     }
+  }
+
+  static getKnownScopes() {
+    const knownScopes = {}
+    function addScopesFromPatterns(somePatterns) {
+      if (!somePatterns) return
+      somePatterns.forEach(function(aPattern) { addScopesFromRule(aPattern) })
+    }
+    function addScopesFromRepository(aRepository) {
+      if (!aRepository) return
+      for (const [aKey, aValue] of Object.entries(aRepository)) {
+        addScopesFromRule(aValue)
+      }
+    }
+    function addScopesFromCaptures(someCaptures) {
+      if (!someCaptures) return
+      for (const [aKey, aValue] of Object.entries(someCaptures)) {
+        addScopesFromRule(aValue)
+      }
+    }
+    function addScopesFromRule(aRule) {
+      if (!aRule) return
+      if (aRule['name'])        knownScopes[aRule['name']]        = True
+      if (aRule['scopeName'])   knownScopes[aRule['scopeName']]   = True
+      if (aRule['contentName']) knownScopes[aRule['contentName']] = True
+      addScopesFromPatterns(aRule['patterns'])
+      addScopesFromRepository(aRule['repository'])
+      addScopesFromCaptures(aRule['captures'])
+      addScopesFromCaptures(aRule['beginCaptures'])
+      addScopesFromCaptures(aRule['endCaptures'])
+    }
+    for (const [aScope, aGrammar] of Object.entries(Grammars.scope2grammar)){
+      knownScopes[aScope] = True
+      addScopesFromPatterns(aGrammar['patterns'])
+      addScopesFromRepository(aGrammar['repository'])
+    }
+    return Object.keys(knownScopes).sort()
   }
 
   //////////////////////////////////////////////////////////////////////////////
