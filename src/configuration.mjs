@@ -60,13 +60,25 @@ class Config {
   }  
 
   static async loadConfig(cliArgs, defaultConfig, preSaveFunc) {
-    var config = {};
-    if (defaultConfig) {
-      config = deepmerge(config, defaultConfig) ;
-    }
-  
     const cliOpts = cliArgs.opts()
     const verbose = cliOpts.verbose ;
+    var   config  = {};
+
+    if (defaultConfig) {
+      config = deepmerge(config, defaultConfig) ;
+        if (verbose) {
+          console.log("\n--default config-------------------------------------------")
+          console.log(yaml.stringify(config))
+          console.log("-----------------------------------------------------------")
+        }  
+      }  
+    
+    if (verbose) {
+      console.log("\n--command line config--------------------------------------")
+      console.log(yaml.stringify(cliOpts))
+      console.log("-----------------------------------------------------------")
+    }
+    
     var configText = ""
     if (!cliOpts.config) {
       if (!configText) try {
@@ -98,6 +110,7 @@ class Config {
       }
     }
     if (configText) {
+      if (verbose) console.log(`Loaded configuration from [${cliOpts.config}]`)
       var fileConfig = {}
       const lcConfigPath = cliOpts.config.toLowerCase() ;
       if (lcConfigPath.endsWith('yaml') || lcConfigPath.endsWith('yml')) {
@@ -108,6 +121,11 @@ class Config {
         fileConfig = JSON.parse(configText) ;
       }
       config = deepmerge(config, fileConfig) ;
+      if (verbose) {
+        console.log("\n--config file config---------------------------------------")
+        console.log(yaml.stringify(config))
+        console.log("-----------------------------------------------------------")
+      }
     }
       
     config = deepmerge(config, cliOpts) ;
@@ -143,12 +161,6 @@ class Config {
     if (preSaveFunc) preSaveFunc(config)
     
     if (verbose) {
-      console.log("\n--command line config--------------------------------------")
-      console.log(yaml.stringify(cliOpts))
-      console.log("-----------------------------------------------------------")
-    }
-    
-    if (verbose) {
       console.log("\n--config---------------------------------------------------")
       console.log(yaml.stringify(config))
       console.log("-----------------------------------------------------------")
@@ -157,6 +169,11 @@ class Config {
     if (config['save']) {
       const savePath = config['save']
       const lcSavePath = savePath.toLowerCase()
+      // ensure the follow DO NOT get saved...
+      if (config['save'])    delete config['save']
+      if (config['verbose']) delete config['verbose']
+      if (config['config'])  delete config['config']
+      // now save everything else!
       var configStr = ""
       if (lcSavePath.endsWith('yaml') || lcSavePath.endsWith('yml')) {
         configStr = yaml.stringify(config)

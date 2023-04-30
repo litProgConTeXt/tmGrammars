@@ -1,4 +1,6 @@
 
+import yaml from "yaml"
+
 import { Config, AppendableCommand } from "./configuration.mjs"
 import { DocumentCache } from "./documents.mjs"
 import { Grammars     } from "./grammars.mjs"
@@ -40,7 +42,11 @@ cliArgs.parse();
 var config = {}
 try {
   config = await Config.loadConfig(cliArgs, {}, function(config){
-    function compileRegExps(anArray) {
+    function compileRegExps(arrayA, arrayB) {
+      console.log(`compileRegExps ${yaml.stringify(arrayA)}`)
+      console.log(`compileRegExps ${yaml.stringify(arrayB)}`)
+      var anArray = arrayA
+      if (!anArray) anArray = arrayB
       if (!anArray) return []
       if (!Array.isArray(anArray)) anArray = [ anArray ]
       return anArray.map(function(aValue) {
@@ -50,32 +56,36 @@ try {
     ///////////////////////////////////////////////////////////////////////////////
     // normalize the trace options
     config['traceLines'] = {
-      include: compileRegExps(config['traceLine']),
-      exclude: compileRegExps(config['tlExclude'])
+      name:    'traceLines',
+      include: compileRegExps(config['traceLine'], config['traceLines']['include']),
+      exclude: compileRegExps(config['tlExclude'], config['traceLines']['exclude'])
     }
     if (config['traceLine']) delete config['traceLine']
     if (config['tlExclude']) delete config['tlExclude']
 
     config['traceActions'] = {
-      loaded: Object.keys(ScopeActions.getScopesWithActions()).sort(),
-      include: compileRegExps(config['traceAction']),
-      exclude: compileRegExps(config['taExclude'])
+      name:    'traceActions',
+      loaded:  Object.keys(ScopeActions.getScopesWithActions()).sort(),
+      include: compileRegExps(config['traceAction'], config['traceActions']['include']),
+      exclude: compileRegExps(config['taExclude'],   config['traceActions']['exclude'])
     }
     if (config['traceAction']) delete config['traceAction']
     if (config['taExclude'])   delete config['taExclude']
 
     config['traceScopes'] = {
-      loaded: Grammars.getKnownScopes(),
-      include: compileRegExps(config['traceScope']),
-      exclude: compileRegExps(config['tsExclude'])
+      name:    'traceScopes',
+      loaded:  Grammars.getKnownScopes(),
+      include: compileRegExps(config['traceScope'], config['traceScopes']['include']),
+      exclude: compileRegExps(config['tsExclude'],  config['traceScopes']['exclude'])
     }
     if (config['traceScope']) delete config['traceScope']
     if (config['tsExclude'])  delete config['tsExclude']
 
     config['traceStructures'] = {
-      loaded: Structures.getStructureNames(),
-      include: compileRegExps(config['traceStructure']),
-      exclude: compileRegExps(config['tSExclude'])
+      name:    'traceStructures',
+      loaded:  Structures.getStructureNames(),
+      include: compileRegExps(config['traceStructure'], config['traceStructures']['include']),
+      exclude: compileRegExps(config['tSExclude'],      config['traceStructures']['exclude'])
     }
     if (config['traceStructure']) delete config['traceStructure']
     if (config['tSExclude'])      delete config['tSExclude']
@@ -84,6 +94,7 @@ try {
   const error = await err
   console.log(error)
 }
+
 if (config['actions']) {
   ScopeActions.printActions()
   process.exit(0)
@@ -111,7 +122,12 @@ if (cliArgs.args.length < 1) {
   process.exit(0)
 }
 
+console.log(cliArgs.args)
+
 cliArgs.args.forEach(async function(aDocPath){
+  console.log("\n--TRACING--------------------------------------------------------")
+  console.log(aDocPath)
+  console.log("-----------------------------------------------------------------")
   const aDoc = await DocumentCache.loadFromFile(aDocPath)
   await Grammars.traceParseOf(aDoc, config)
 })

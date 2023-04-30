@@ -77,18 +77,28 @@ class Grammars {
   }
 
   static async traceParseOf(aDoc, config) {
+    const verbose = config['verbose']
     function traceObj(traceOpts, aStr) {
-      if (traceOpts['exclude']) {
+      //console.log(`TraceObj: ${traceOpts['name']}`)
+      //console.log(yaml.stringify(traceOpts))
+
+      if (0 < traceOpts['exclude'].length) {
         for (const aRegExp of traceOpts['exclude'].values() ) {
-          if (aStr.match(aRegExp)) return False
+          if (aStr.match(aRegExp)) {
+            if (verbose) console.log(`[${aStr}] EXCLUDED by [${aRegExp}]`)
+            return False
+          }
         }
       }
       if (0 < traceOpts['include'].length) {
         console.log(`have includes ${traceOpts['include'].length}`)
         for (const aRegExp of traceOpts['include'].values() ) {
-          if (aStr.match(aRegExp)) return True
+          if (aStr.match(aRegExp)) {
+            if (verbose) console.log(`[${aStr}] INCLUDED by [${aRegExp}]`)
+            return True
+          }
         }
-        console.log("none matched")
+        if (verbose) console.log("No match found in traceObj")
         return False
       }
       return True
@@ -106,7 +116,6 @@ class Grammars {
     let ruleStack = vsctm.INITIAL
     aDoc.docLines.forEach(function(aLine){
       const lineTokens = aGrammar.tokenizeLine(aLine, ruleStack)
-      console.log(aLine)
       if (traceObj(config['traceLines'], aLine)) {
         console.log(`\nTokenizing line: >>${aLine}<< (${aLine.length})`);
         lineTokens.tokens.forEach(function(aToken){
