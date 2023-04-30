@@ -9,6 +9,7 @@ import yaml      from "yaml"
 
 import { Config }       from "./configuration.mjs"
 import { ScopeActions } from "./scopeActions.mjs"
+import { Structures   } from "./structures.mjs"
 
 const True  = 1
 const False = 0
@@ -76,26 +77,62 @@ class Grammars {
   }
 
   static async traceParseOf(aDoc, config) {
+    function traceObj(traceOpts, aStr) {
+      if (traceOpts['exclude']) {
+        for (const aRegExp of traceOpts['exclude'].values() ) {
+          if (aStr.match(aRegExp)) return False
+        }
+      }
+      if (0 < traceOpts['include'].length) {
+        console.log(`have includes ${traceOpts['include'].length}`)
+        for (const aRegExp of traceOpts['include'].values() ) {
+          if (aStr.match(aRegExp)) return True
+        }
+        console.log("none matched")
+        return False
+      }
+      return True
+    }
+
     const aBaseScope = Grammars.chooseBaseScope(aDoc.filePath, aDoc.docLines[0])
     if (!aBaseScope) {
       console.log("WARNING: Could not find the base scope for the document")
       console.log(`  ${aDoc.docName}`)
       return
     }
+    const scopesWithActions = ScopeActions.getScopesWithActions()
+    const structureNames    = Structures.getStructureNames()
     const aGrammar = await Grammars.registry.loadGrammar(aBaseScope)
     let ruleStack = vsctm.INITIAL
     aDoc.docLines.forEach(function(aLine){
       const lineTokens = aGrammar.tokenizeLine(aLine, ruleStack)
-      console.log(`\nTokenizing line: >>${aLine}<< (${aLine.length})`);
-      lineTokens.tokens.forEach(function(aToken){
-        console.log(` - token from ${aToken.startIndex} to ${aToken.endIndex} ` +
+      console.log(aLine)
+      if (traceObj(config['traceLines'], aLine)) {
+        console.log(`\nTokenizing line: >>${aLine}<< (${aLine.length})`);
+        lineTokens.tokens.forEach(function(aToken){
+          console.log(` - token from ${aToken.startIndex} to ${aToken.endIndex} ` +
           `(${aLine.substring(aToken.startIndex, aToken.endIndex)}) ` +
           `with scopes:`
-        );
-        aToken.scopes.forEach(function(aScope){
-          console.log(`     ${aScope}`)
-      })
-      })
+          );
+          aToken.scopes.forEach(function(aScope){
+            if (traceObj(config['traceScopes'], aScope)) {
+              console.log(`     ${aScope}`)
+              if (traceObj(config['traceActions'], aScope) && scopesWithActions[aScope]) {
+                console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                scopesWithActions[aScope].forEach(async function(anAction){
+                  await anAction.run()
+                })
+                structureNames.forEach(function(aStructureName){
+                  if (traceObj(config['traceStructures'], aStructureName)) {
+                    Structures.printStructure(aStructureName)
+                  }
+                })
+                console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+              }
+            }
+          })
+        })
+      }
       ruleStack = lineTokens.ruleStack;
     })
   }
@@ -107,7 +144,6 @@ class Grammars {
       console.log(`  ${aDoc.docName}`)
       return
     }
-    const scopesWithActions = ScopeActions.getScopesWithActions()
     const aGrammar = await Grammars.registry.loadGrammar(aBaseScope)
     let ruleStack = vsctm.INITIAL
     aDoc.docLines.forEach(function(aLine){
@@ -120,17 +156,6 @@ class Grammars {
         );
         aToken.scopes.forEach(function(aScope){
           console.log(`     ${aScope}`)
-        })
-        aToken.scopes.forEach(function(aScope){
-          if (scopesWithActions[aScope]) {
-            console.log("-----------------------------------------------------")
-            console.log(aScope)
-            scopesWithActions[aScope].forEach(async function(anAction){
-              await anAction.run()
-            })
-            Structures.printAllStructures()
-            console.log("-----------------------------------------------------")
-          }
         })
       })
       ruleStack = lineTokens.ruleStack;

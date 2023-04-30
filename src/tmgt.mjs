@@ -40,35 +40,42 @@ cliArgs.parse();
 var config = {}
 try {
   config = await Config.loadConfig(cliArgs, {}, function(config){
+    function compileRegExps(anArray) {
+      if (!anArray) return []
+      if (!Array.isArray(anArray)) anArray = [ anArray ]
+      return anArray.map(function(aValue) {
+        return new RegExp(aValue)
+      })
+    }
     ///////////////////////////////////////////////////////////////////////////////
     // normalize the trace options
-    config['tarceLines'] = {
-      include: config['traceLine'] || [],
-      exclude: config['tlExclude'] || []
+    config['traceLines'] = {
+      include: compileRegExps(config['traceLine']),
+      exclude: compileRegExps(config['tlExclude'])
     }
     if (config['traceLine']) delete config['traceLine']
     if (config['tlExclude']) delete config['tlExclude']
 
     config['traceActions'] = {
       loaded: Object.keys(ScopeActions.getScopesWithActions()).sort(),
-      include: config['traceAction'] || [],
-      exclude: config['taExclude']   || []
+      include: compileRegExps(config['traceAction']),
+      exclude: compileRegExps(config['taExclude'])
     }
     if (config['traceAction']) delete config['traceAction']
     if (config['taExclude'])   delete config['taExclude']
 
     config['traceScopes'] = {
       loaded: Grammars.getKnownScopes(),
-      include: config['traceScope'] || [],
-      exclude: config['tsExclude']  || []
+      include: compileRegExps(config['traceScope']),
+      exclude: compileRegExps(config['tsExclude'])
     }
     if (config['traceScope']) delete config['traceScope']
     if (config['tsExclude'])  delete config['tsExclude']
 
     config['traceStructures'] = {
       loaded: Structures.getStructureNames(),
-      include: config['traceStructure'] || [],
-      exclude: config['tSExclude']      || []
+      include: compileRegExps(config['traceStructure']),
+      exclude: compileRegExps(config['tSExclude'])
     }
     if (config['traceStructure']) delete config['traceStructure']
     if (config['tSExclude'])      delete config['tSExclude']
