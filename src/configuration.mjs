@@ -33,7 +33,7 @@ class Config {
   static addCliArgs(cliArgs) {
     cliArgs
       .option('-v, --verbose', 'Be verbose')
-      .option('-c, --config <file>',  'Load a configuration file (YAML|TOML|JSON)')
+      .option('-c, --config <file>',  'Load a configuration file (YAML|TOML|JSON) (default: tmgt.{yaml|yml|toml|json})')
       .optionAppend('-la, --loadActions <file>', 'Load actions from a CommonJS module')
       .optionAppend('-lg, --loadGrammar <file>', 'Load a grammar from the file system or a Python resource (JSON|PLIST)')
       .option('-s, --save <file>', 'Save the current configuration into file (YAML|TOML|JSON)')
@@ -67,26 +67,53 @@ class Config {
   
     const cliOpts = cliArgs.opts()
     const verbose = cliOpts.verbose ;
-    if (cliOpts.config) {
-      const configText = await fsp.readFile(
-        cliOpts.config, {encoding: 'utf8', flag: 'r'}
-        );
-        var fileConfig = {}
-        const lcConfigPath = cliOpts.config.toLowerCase() ;
-        if (lcConfigPath.endsWith('yaml') || lcConfigPath.endsWith('yml')) {
-          fileConfig = yaml.parse(configText) ;
-        } else if (lcConfigPath.endsWith('toml')) {
-          fileConfig = toml.parse(configText) ;
-        } else if (lcConfigPath.endsWith('json')) {
-          fileConfig = JSON.parse(configText) ;
-        }
-        config = deepmerge(config, fileConfig) ;
+    var configText = ""
+    if (!cliOpts.config) {
+      if (!configText) try {
+        cliOpts.config = "tmgt.yaml"
+        configText = await fsp.readFile(cliOpts.config, 'utf8');
+      } catch (error) { /* do nothing */ }
+      if (!configText) try {
+        cliOpts.config = "tmgt.yml"
+        configText = await fsp.readFile(cliOpts.config, 'utf8');
+      } catch (error) { /* do nothing */ }
+      if (!configText) try {
+        cliOpts.config = "tmgt.toml"
+        configText = await fsp.readFile(cliOpts.config, 'utf8');
+      } catch (error) { /* do nothing */ }
+      if (!configText) try {
+        cliOpts.config = "tmgt.json"
+        configText = await fsp.readFile(cliOpts.config, 'utf8');
+      } catch (error) { /* do nothing */ }
+      if (!configText) {
+        console.log(`Could not load the default configuration file [tmgt.{yaml|yml|toml|json}]`)
+        console.log("  continuing with out loaded configuration...")  
       }
+    } else {
+      if (!configText) try {
+        configText = await fsp.readFile(cliOpts.config, 'utf8');
+      } catch (error) {
+        console.log(`Could not load the configuration file [${cliOpts.config}]`)
+        console.log("  continuing with out loaded configuration...")  
+      }
+    }
+    if (configText) {
+      var fileConfig = {}
+      const lcConfigPath = cliOpts.config.toLowerCase() ;
+      if (lcConfigPath.endsWith('yaml') || lcConfigPath.endsWith('yml')) {
+        fileConfig = yaml.parse(configText) ;
+      } else if (lcConfigPath.endsWith('toml')) {
+        fileConfig = toml.parse(configText) ;
+      } else if (lcConfigPath.endsWith('json')) {
+        fileConfig = JSON.parse(configText) ;
+      }
+      config = deepmerge(config, fileConfig) ;
+    }
       
-      config = deepmerge(config, cliOpts) ;
+    config = deepmerge(config, cliOpts) ;
       
-      if (0 < config.loadActions.length) {
-        if (verbose) {
+    if (config.loadActions && 0 < config.loadActions.length) {
+      if (verbose) {
         console.log("\n--loading actions----------------------------------------")
       }
       await Promise.all(config.loadActions.map( async (anActionsPath) => {
@@ -99,7 +126,7 @@ class Config {
       }
     }
   
-    if (0 < config.loadGrammar.length) {
+    if (config.loadGrammar && 0 < config.loadGrammar.length) {
       if (verbose) {
         console.log("\n--loading grammars---------------------------------------")
       }
