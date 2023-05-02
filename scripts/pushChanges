@@ -14,5 +14,20 @@ py_copy_tmGrammars () {
   popd
 }
 
-py_copy_tmGrammars conTeXt-langServer
-py_copy_tmGrammars lpic-langServer
+npm_copy_tmGrammars () {
+	toDir=$1
+	toNPM=$1/node_modules
+  echo "----------------------------------------------------------"
+  echo ""
+  echo "Javascript copying tmGrammars to $toDir"
+  cp -R tmGrammars $toNPM
+  rm -rf $toNPM/tmGrammars/.git
+  rm -rf $toNPM/tmGrammars/node_modules
+  rm -rf $toNPM/tmgrammars
+  mv $toNPM/tmGrammars $toNPM/tmgrammars
+}
+
+#py_copy_tmGrammars conTeXt-langServer
+#py_copy_tmGrammars lpic-langServer
+
+npm_copy_tmGrammars lpic-tool
