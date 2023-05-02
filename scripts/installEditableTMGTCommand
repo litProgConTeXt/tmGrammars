@@ -4,7 +4,7 @@
 # script to run the tmgt command anywhere in a user's
 # workspace.
 
-cmdScript=$(pwd)/src/tmgt.mjs
+cmdScript=$(pwd)/lib/tmgt.mjs
 
 cat << CMD_SCRIPT > $HOME/.local/bin/tmgt
 #!/bin/sh

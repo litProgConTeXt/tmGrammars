@@ -3,17 +3,6 @@
 # Push changes to tmGrammars to the conTeXt and lpic langServers
 cd ..
 
-py_copy_tmGrammars () {
-  toDir=$1
-  echo "----------------------------------------------------------"
-  echo ""
-  echo "Python copying tmGrammars to $toDir"
-  pushd $toDir
-  pwd
-  .venv/bin/python scripts/updateLocalTmGrammars
-  popd
-}
-
 npm_copy_tmGrammars () {
 	toDir=$1
 	toNPM=$1/node_modules
@@ -26,8 +15,5 @@ npm_copy_tmGrammars () {
   rm -rf $toNPM/tmgrammars
   mv $toNPM/tmGrammars $toNPM/tmgrammars
 }
-
-#py_copy_tmGrammars conTeXt-langServer
-#py_copy_tmGrammars lpic-langServer
 
 npm_copy_tmGrammars lpic-tool

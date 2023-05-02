@@ -2,8 +2,8 @@
   "name": "tmgrammars",
   "version": "0.0.1",
   "description": "A javascript tool to manipulate and run TextMate Grammars",
-  "main": "src/tmgt.js",
-  "type": "commonjs",
+  "main": "lib/tmgt.mjs",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
