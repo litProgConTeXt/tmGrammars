@@ -2,7 +2,6 @@
 import yaml from "yaml"
 
 import { Config, AppendableCommand } from "./configuration.mjs"
-import { DocumentCache } from "./documents.mjs"
 import { Grammars     } from "./grammars.mjs"
 import { ScopeActions } from "./scopeActions.mjs"
 import { Structures   } from "./structures.mjs"
@@ -42,9 +41,8 @@ cliArgs.parse();
 var config = {}
 try {
   config = await Config.loadConfig(cliArgs, {}, function(config){
+    // this is the preRunFunction 
     function compileRegExps(arrayA, arrayB) {
-      console.log(`compileRegExps ${yaml.stringify(arrayA)}`)
-      console.log(`compileRegExps ${yaml.stringify(arrayB)}`)
       var anArray = arrayA
       if (!anArray) anArray = arrayB
       if (!anArray) return []
@@ -89,6 +87,40 @@ try {
     }
     if (config['traceStructure']) delete config['traceStructure']
     if (config['tSExclude'])      delete config['tSExclude']
+  }, function(config){
+    // this is the preSaveFunction
+    function decompileRegExps(anArray) {
+      if (!anArray) return []
+      if (!Array.isArray(anArray)) anArray = [ anArray ]
+      return anArray.map(function(aValue) {
+        return aValue.source
+      })
+    }    
+    ///////////////////////////////////////////////////////////////////////////////
+    // normalize the trace options
+    config['traceLines'] = {
+      name: 'traceLines',
+      include: decompileRegExps(config['traceLines']['include']),
+      exclude: decompileRegExps(config['traceLines']['exclude'])
+    }
+    config['traceActions'] = {
+      name:    'traceActions',
+      loaded:  Object.keys(ScopeActions.getScopesWithActions()).sort(),
+      include: decompileRegExps(config['traceActions']['include']),
+      exclude: decompileRegExps(config['traceActions']['exclude'])
+    }
+    config['traceScopes'] = {
+      name:    'traceScopes',
+      loaded:  Grammars.getKnownScopes(),
+      include: decompileRegExps(config['traceScopes']['include']),
+      exclude: decompileRegExps(config['traceScopes']['exclude'])
+    }
+    config['traceStructures'] = {
+      name:    'traceStructures',
+      loaded:  Structures.getStructureNames(),
+      include: decompileRegExps(config['traceStructures']['include']),
+      exclude: decompileRegExps(config['traceStructures']['exclude'])
+    }
   })
 } catch (err) {
   const error = await err
@@ -122,13 +154,7 @@ if (cliArgs.args.length < 1) {
   process.exit(0)
 }
 
-console.log(cliArgs.args)
-
 cliArgs.args.forEach(async function(aDocPath){
-  console.log("\n--TRACING--------------------------------------------------------")
-  console.log(aDocPath)
-  console.log("-----------------------------------------------------------------")
-  const aDoc = await DocumentCache.loadFromFile(aDocPath)
-  await Grammars.traceParseOf(aDoc, config)
+  await Grammars.traceParseOf(aDocPath, config)
 })
 

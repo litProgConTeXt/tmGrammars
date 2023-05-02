@@ -14,8 +14,8 @@ class ScopeAction {
 
   // we may want a "__str__" function...
 
-  run() {
-    return this.func(this.scopeStr, deepcopy(this.callArgs)) ;
+  run(theScope, theTokens) {
+    return this.func(this.scope, theScope, theTokens, deepcopy(this.callArgs)) ;
   }
 }
 
@@ -126,38 +126,47 @@ class ScopeActions {
     }))
   }
 
-  static _forEach(baseScope, actions, aCallBackFunc) {
+  static _forEachScope(baseScope, actions, aCallBackFunc) {
     Object.keys(actions).sort().forEach(function(aKey){
       if (aKey === '__actions__') {
-        actions['__actions__'].forEach(function(anAction){
-          aCallBackFunc(baseScope, anAction)
-        })
+          aCallBackFunc(baseScope, actions['__actions__'])
       } else {
         var newKey = aKey
         if (baseScope) newKey = baseScope+'.'+aKey
-        ScopeActions._forEach(newKey, actions[aKey], aCallBackFunc)
+        ScopeActions._forEachScope(newKey, actions[aKey], aCallBackFunc)
       }
     })
   }
 
-  // aCallBackFunc(aScope, anAction) is called for each ScopeAction
+  // aCallBackFunc(aScope, someActions) is called for each ScopeAction
   // in the ScopeActions
   //
-  static forEach(aCallBackFunc) {
-    ScopeActions._forEach('', ScopeActions.actions, aCallBackFunc)
+  static forEachScope(aCallBackFunc) {
+    ScopeActions._forEachScope('', ScopeActions.actions, aCallBackFunc)
+  }
+
+  // aCallBackFunc(aScope, someActions) is called for each ScopeAction
+  // in the ScopeActions
+  //
+  static forEachAction(aCallBackFunc) {
+    ScopeActions.forEachScope(function(aScope, someActions) {
+      someActions.forEach(function(anAction){
+        aCallBackFunc(aScope, anAction)
+      })
+    })
   }
 
   static getScopesWithActions() {
     const scopesWithActions = {}
-    ScopeActions.forEach(function(aScope, anAction){
-      scopesWithActions[aScope] = anAction
-    })
+    ScopeActions.forEachScope(function(aScope, someActions){
+      scopesWithActions[aScope] = someActions
+    })  
     return scopesWithActions
-  }
+  }  
 
   static printActions() {
     console.log("--actions-----------------------------------------------------")
-    ScopeActions.forEach(function(aBaseScope, anAction){
+    ScopeActions.forEachAction(function(aBaseScope, anAction){
       console.log(anAction)
     })
     console.log("--------------------------------------------------------------")

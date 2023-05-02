@@ -59,7 +59,7 @@ class Config {
     return path.normalize(aPath)
   }  
 
-  static async loadConfig(cliArgs, defaultConfig, preSaveFunc) {
+  static async loadConfig(cliArgs, defaultConfig, preRunFunc, preSaveFunc) {
     const cliOpts = cliArgs.opts()
     const verbose = cliOpts.verbose ;
     var   config  = {};
@@ -158,7 +158,7 @@ class Config {
       }
     }
     
-    if (preSaveFunc) preSaveFunc(config)
+    if (preRunFunc) preRunFunc(config)
     
     if (verbose) {
       console.log("\n--config---------------------------------------------------")
@@ -174,6 +174,7 @@ class Config {
       if (config['verbose']) delete config['verbose']
       if (config['config'])  delete config['config']
       // now save everything else!
+      if (preSaveFunc) preSaveFunc(config)
       var configStr = ""
       if (lcSavePath.endsWith('yaml') || lcSavePath.endsWith('yml')) {
         configStr = yaml.stringify(config)

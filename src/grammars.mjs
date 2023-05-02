@@ -7,9 +7,10 @@ import vsctm     from "vscode-textmate"
 import oniguruma from "vscode-oniguruma"
 import yaml      from "yaml"
 
-import { Config }       from "./configuration.mjs"
-import { ScopeActions } from "./scopeActions.mjs"
-import { Structures   } from "./structures.mjs"
+import { Config        } from "./configuration.mjs"
+import { DocumentCache } from "./documents.mjs"
+import { ScopeActions  } from "./scopeActions.mjs"
+import { Structures    } from "./structures.mjs"
 
 const True  = 1
 const False = 0
@@ -76,12 +77,9 @@ class Grammars {
     console.log("chooseBaseScope: no match found!")
   }
 
-  static async traceParseOf(aDoc, config) {
+  static async traceParseOf(aDocPath, config) {
     const verbose = config['verbose']
     function traceObj(traceOpts, aStr) {
-      //console.log(`TraceObj: ${traceOpts['name']}`)
-      //console.log(yaml.stringify(traceOpts))
-
       if (0 < traceOpts['exclude'].length) {
         for (const aRegExp of traceOpts['exclude'].values() ) {
           if (aStr.match(aRegExp)) {
@@ -91,7 +89,6 @@ class Grammars {
         }
       }
       if (0 < traceOpts['include'].length) {
-        console.log(`have includes ${traceOpts['include'].length}`)
         for (const aRegExp of traceOpts['include'].values() ) {
           if (aStr.match(aRegExp)) {
             if (verbose) console.log(`[${aStr}] INCLUDED by [${aRegExp}]`)
@@ -103,70 +100,70 @@ class Grammars {
       }
       return True
     }
-
+    
+    const aDoc = await DocumentCache.loadFromFile(aDocPath)
     const aBaseScope = Grammars.chooseBaseScope(aDoc.filePath, aDoc.docLines[0])
     if (!aBaseScope) {
       console.log("WARNING: Could not find the base scope for the document")
       console.log(`  ${aDoc.docName}`)
       return
     }
+    console.log("\n--TRACING--------------------------------------------------------")
+    console.log(`${aDocPath} (using ${aBaseScope})`)
+    console.log("-----------------------------------------------------------------")
     const scopesWithActions = ScopeActions.getScopesWithActions()
     const structureNames    = Structures.getStructureNames()
-    const aGrammar = await Grammars.registry.loadGrammar(aBaseScope)
-    let ruleStack = vsctm.INITIAL
+    const aGrammar          = await Grammars.registry.loadGrammar(aBaseScope)
+    let ruleStack           = vsctm.INITIAL
     aDoc.docLines.forEach(function(aLine){
+      const scopes2run = {}
       const lineTokens = aGrammar.tokenizeLine(aLine, ruleStack)
-      if (traceObj(config['traceLines'], aLine)) {
+      const showLine   = traceObj(config['traceLines'], aLine)
+      if (showLine) {
         console.log(`\nTokenizing line: >>${aLine}<< (${aLine.length})`);
-        lineTokens.tokens.forEach(function(aToken){
-          console.log(` - token from ${aToken.startIndex} to ${aToken.endIndex} ` +
-          `(${aLine.substring(aToken.startIndex, aToken.endIndex)}) ` +
-          `with scopes:`
-          );
-          aToken.scopes.forEach(function(aScope){
-            if (traceObj(config['traceScopes'], aScope)) {
-              console.log(`     ${aScope}`)
-              if (traceObj(config['traceActions'], aScope) && scopesWithActions[aScope]) {
-                console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                scopesWithActions[aScope].forEach(async function(anAction){
-                  await anAction.run()
-                })
-                structureNames.forEach(function(aStructureName){
-                  if (traceObj(config['traceStructures'], aStructureName)) {
-                    Structures.printStructure(aStructureName)
-                  }
-                })
-                console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-              }
-            }
-          })
-        })
       }
-      ruleStack = lineTokens.ruleStack;
-    })
-  }
-
-  static async testActionsUsing(aDoc) {
-    const aBaseScope = Grammars.chooseBaseScope(aDoc.filePath, aDoc.docLines[0])
-    if (!aBaseScope) {
-      console.log("WARNING: Could not find the base scope for the document")
-      console.log(`  ${aDoc.docName}`)
-      return
-    }
-    const aGrammar = await Grammars.registry.loadGrammar(aBaseScope)
-    let ruleStack = vsctm.INITIAL
-    aDoc.docLines.forEach(function(aLine){
-      const lineTokens = aGrammar.tokenizeLine(aLine, ruleStack)
-      console.log(`\nTokenizing line: >>${aLine}<< (${aLine.length})`);
       lineTokens.tokens.forEach(function(aToken){
-        console.log(` - token from ${aToken.startIndex} to ${aToken.endIndex} ` +
-          `(${aLine.substring(aToken.startIndex, aToken.endIndex)}) ` +
-          `with scopes:`
-        );
+        if (showLine) {
+          console.log(` - token from ${aToken.startIndex} to ${aToken.endIndex} ` +
+            `(${aLine.substring(aToken.startIndex, aToken.endIndex)}) ` +
+            `with scopes:`
+          );
+        }
         aToken.scopes.forEach(function(aScope){
-          console.log(`     ${aScope}`)
+          const showScope  = traceObj(config['traceScopes'], aScope)
+          if (showLine && showScope) console.log(`     ${aScope}`)
+          if (scopesWithActions[aScope]) {
+            if (!scopes2run[aScope]) scopes2run[aScope] = []
+              scopes2run[aScope].push(
+                aLine.substring(aToken.startIndex, aToken.endIndex)
+              )
+            }
         })
       })
+      if (scopes2run) {
+        for (const [aScope, someTokens] of Object.entries(scopes2run)) {
+          const showScope  = traceObj(config['traceScopes'], aScope)
+          const showAction = traceObj(config['traceActions'], aScope)
+          if (showLine && showScope && showAction) {
+            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            if (showLine && showScope) {
+              console.log(`${aScope} :`)
+              console.log(yaml.stringify(someTokens))
+            }
+          }
+          scopesWithActions[aScope].forEach(async function(anAction){
+            await anAction.run(aScope, someTokens)
+          })
+          if (showLine && showScope && showAction) {
+            structureNames.forEach(function(aStructureName){
+              if (traceObj(config['traceStructures'], aStructureName)) {
+                  Structures.printStructure(aStructureName)
+                }
+              })
+            console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+          }
+        }
+      }
       ruleStack = lineTokens.ruleStack;
     })
   }
