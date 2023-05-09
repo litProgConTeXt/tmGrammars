@@ -3,17 +3,20 @@
 # Push changes to tmGrammars to the conTeXt and lpic langServers
 cd ..
 
-npm_copy_tmGrammars () {
+npm_copy_lpic_modules () {
 	toDir=$1
 	toNPM=$1/node_modules
   echo "----------------------------------------------------------"
   echo ""
-  echo "Javascript copying tmGrammars to $toDir"
-  cp -R tmGrammars $toNPM
-  rm -rf $toNPM/tmGrammars/.git
-  rm -rf $toNPM/tmGrammars/node_modules
-  rm -rf $toNPM/tmgrammars
-  mv $toNPM/tmGrammars $toNPM/tmgrammars
+  echo "Javascript copying lpic modules to $toDir"
+  rm -rf $toNPM/lpic-modules
+  cp -R lpic-modules $toNPM
+  rm -rf $toNPM/lpic-modules/.git
+  rm -rf $toNPM/lpic-modules/node_modules
 }
 
-npm_copy_tmGrammars lpic-tool
+npm_copy_lpic_modules lpic-tool
+
+#npm_copy_lpic_modules lpic-langServer
+
+#npm_copy_lpic_modules conTeXt-langServer

@@ -1,4 +1,4 @@
-# TM-Grammars for the LPiC projects
+# Common JavaScript modules for the LPiC projects
 
-A javascript tool to manipulate and run TextMate Grammars using vscode
-components.
+A collection of javascript modules to manipulate and run TextMate Grammars
+using vscode components.
