@@ -19,5 +19,5 @@ npm_copy_lpic_modules lpic-tool
 
 #npm_copy_lpic_modules lpic-langServer
 
-#npm_copy_lpic_modules conTeXt-langServer
+npm_copy_lpic_modules conTeXt-langServer
 
