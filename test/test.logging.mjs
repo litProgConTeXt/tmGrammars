@@ -1,10 +1,24 @@
 import { expect, should, assert } from  'chai'
 import { EventEmitter } from 'events'
-import process from 'process'
-import pino from 'pino'
-import sinon from 'sinon'
 
-import { NoOpLogger, Logging } from '../lib/logging.mjs'
+import { NoOpLogger, ArrayLogger, Logging } from '../lib/logging.mjs'
+
+describe('ArrayLogger', function() {
+  describe('#constructor()', function() {
+    it('should return an ArrayLogger', function() {
+      var anArray = []
+      var arrayLogger = new ArrayLogger(anArray)
+      expect(arrayLogger).is.instanceOf(ArrayLogger)
+      expect(arrayLogger.theArray).is.equal(anArray)
+      expect(anArray).is.empty
+      var msg = "This is a test"
+      arrayLogger.warn(msg)
+      expect(anArray).is.not.empty
+      expect(anArray[0][0]).is.equal("warn")
+      expect(anArray[0][2]).is.equal(msg)
+    })
+  })
+})
 
 describe('NoOpLogger', function () {
   describe('#constructor()', function () {
@@ -20,14 +34,6 @@ describe('NoOpLogger', function () {
 })
 
 describe('Logging', function () {
-  describe('#shouldLog', function (){
-    it('should behave as a switch (initially on)', function() {
-      assert(Logging.shouldLog)
-      Logging.shouldLog = false
-      assert.isFalse(Logging.shouldLog)
-    })
-  })
-
   describe('#options', function () {
     it('can be set (initially empty object)', function () {
       expect(Logging.options).is.eql({})
@@ -44,19 +50,12 @@ describe('Logging', function () {
 
   describe('#getLogger', function () {
     it('should return correct loggers', function () {
-      Logging.shouldLog = true
-      assert(Logging.shouldLog)
       expect(Logging.loggers).not.to.have.property('loggerOne')
       var loggerOne = Logging.getLogger('loggerOne')
       expect(loggerOne).is.instanceOf(EventEmitter)
       expect(Logging.loggers).to.have.property('loggerOne')
       var loggerOneA = Logging.getLogger('loggerOne')
       assert.equal(loggerOne, loggerOneA)
-      Logging.shouldLog = false
-      expect(Logging.loggers).not.to.have.property('loggerTwo')
-      var loggerTwo = Logging.getLogger('loggerTwo')
-      expect(loggerTwo).is.instanceOf(NoOpLogger)
-      expect(Logging.loggers).to.not.have.property('loggerTwo')
     })
   })
 
@@ -65,4 +64,27 @@ describe('Logging', function () {
       expect(Logging.logFilePath).to.include('/tmp/lpicLogger_')
     })
   })
+
+  describe('#getNoOpLogger', function(){
+    it('should be a NoOpLogger', function() {
+      expect(Logging.loggers).not.to.have.property('TheNoOpLogger')
+      var noOpLogger = Logging.getNoOpLogger('TheNoOpLogger')
+      expect(Logging.loggers).to.have.property('TheNoOpLogger')
+      expect(noOpLogger).is.instanceOf(NoOpLogger)
+      Logging.removeLogger('TheNoOpLogger')
+      expect(Logging.loggers).not.to.have.property('TheNoOpLogger')
+    })
+  })
+
+  describe('#getArrayLogger', function(){
+    it('should be an ArrayLogger', function() {
+      expect(Logging.loggers).not.to.have.property('TheArrayLogger')
+      var anArray = []
+      var arrayLogger = Logging.getArrayLogger('TheArrayLogger', anArray)
+      expect(Logging.loggers).to.have.property('TheArrayLogger')
+      expect(arrayLogger).is.instanceOf(ArrayLogger)
+      expect(arrayLogger.theArray).is.equal(anArray)
+    })
+  })
+
 })
