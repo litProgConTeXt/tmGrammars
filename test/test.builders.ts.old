@@ -1,7 +1,7 @@
 
 import { expect, should, assert } from  'chai'
 
-import { Builders } from '../lib/builders.mjs'
+import { Builders } from '../lib/builders'
 
 describe('Builders', function() {
   describe('#something', function() {

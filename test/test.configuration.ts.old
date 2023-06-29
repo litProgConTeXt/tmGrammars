@@ -2,7 +2,7 @@ import os from 'os'
 
 import { expect, should, assert } from  'chai'
 
-import { Config } from '../lib/configuration.mjs'
+import { Config } from '../lib/configuration'
 
 describe('Config', function() {
   describe('#normalizePath', function() {

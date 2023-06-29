@@ -1,0 +1,22 @@
+{
+  // see: https://www.typescriptlang.org/tsconfig
+  //
+  "include" : [
+    "lib/**/*.ts",
+    "test/**/*"
+  ],
+  "compilerOptions": {
+    "strict"              : true,
+    "emitDeclarationOnly" : true,
+    "target"              : "es2022",
+    "module"              : "es2022",
+    "moduleResolution"    : "node16",
+    "rootDirs"            : ["lib", "test"],
+    "declaration"         : true,
+    "outDir"              : "out",
+    "esModuleInterop"     : true,
+    "allowImportingTsExtensions" : true,
+    // ignores errors with our use of Webassembly
+    "skipLibCheck"        : true
+  }
+}

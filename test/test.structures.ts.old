@@ -1,7 +1,7 @@
 
 import { expect, should, assert } from  'chai'
 
-import { SNode, Structures } from '../lib/structures.mjs'
+import { SNode, Structures } from '../lib/structures'
 
 describe('SNode', function() {
   describe('#something', function() {

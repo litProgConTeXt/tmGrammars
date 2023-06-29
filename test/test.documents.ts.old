@@ -1,6 +1,6 @@
 import { expect, should, assert } from  'chai'
 
-import { DocumentCache } from '../lib/documents.mjs'
+import { DocumentCache } from '../lib/documents'
 
 describe('DocumentCache', function() {
   describe('#something', function() {

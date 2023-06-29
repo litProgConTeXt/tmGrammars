@@ -1,6 +1,6 @@
 import { expect, should, assert } from  'chai'
 
-import { Grammars } from '../lib/grammars.mjs'
+import { Grammars } from '../lib/grammars'
 
 describe('Grammars', function() {
   describe('#something', function() {

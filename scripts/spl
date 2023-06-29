@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# This shell script takes the last argument from the spl command line and
+# `cat`s it into the pino-pretty tool
+
+
+if [ $# -lt 1 ] ; then
+  echo "show-pino-log usage:"
+  echo ""
+  echo "    spl [pino-pretty Options] <logFilePath>"
+  echo ""
+  echo "see: https://github.com/pinojs/pino-pretty#cli-arguments"
+  echo ""
+  echo "useful pino-pretty options:"
+  echo "  -L (--minimumLevel) Hide messages below the given log level"
+  echo "     may be a number [0-60] or one of:"
+  echo "       trace(10), debug(20), info(30), warn(40), error(50) or fatal(60)"
+  exit 1
+fi
+
+logFilePath="${!#}"
+argv=("${@:1:$#-1}")
+
+cat $logFilePath | pino-pretty --colorize $argv | less -R
+
+reset

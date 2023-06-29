@@ -1,7 +1,7 @@
 
 import { expect, should, assert } from  'chai'
 
-import { ScopeActions } from '../lib/scopeActions.mjs'
+import { ScopeActions } from '../lib/scopeActions'
 
 describe('ScopeActions', function() {
   describe('#something', function() {

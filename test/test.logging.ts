@@ -1,12 +1,23 @@
+/**
+ * Logging testing
+ * 
+ * We test the logging module
+ * 
+ * @module
+ */
+
 import { expect, should, assert } from  'chai'
 import { EventEmitter } from 'events'
 
-import { NoOpLogger, ArrayLogger, Logging } from '../lib/logging.mjs'
+//import pkg from '../out/logging.js';
+//const { NoOpLogger, ArrayLogger, Logging } = pkg;
+
+import { NoOpLogger, ArrayLogger, Logging } from '../lib/logging.js'
 
 describe('ArrayLogger', function() {
   describe('#constructor()', function() {
     it('should return an ArrayLogger', function() {
-      var anArray = []
+      var anArray : Array<Array<any>> = []
       var arrayLogger = new ArrayLogger(anArray)
       expect(arrayLogger).is.instanceOf(ArrayLogger)
       expect(arrayLogger.theArray).is.equal(anArray)
@@ -50,10 +61,10 @@ describe('Logging', function () {
 
   describe('#getLogger', function () {
     it('should return correct loggers', function () {
-      expect(Logging.loggers).not.to.have.property('loggerOne')
+      expect(Logging.loggers).not.to.include('loggerOne')
       var loggerOne = Logging.getLogger('loggerOne')
       expect(loggerOne).is.instanceOf(EventEmitter)
-      expect(Logging.loggers).to.have.property('loggerOne')
+      assert(Logging.loggers.has('loggerOne'))
       var loggerOneA = Logging.getLogger('loggerOne')
       assert.equal(loggerOne, loggerOneA)
     })
@@ -67,22 +78,22 @@ describe('Logging', function () {
 
   describe('#getNoOpLogger', function(){
     it('should be a NoOpLogger', function() {
-      expect(Logging.loggers).not.to.have.property('TheNoOpLogger')
+      expect(Logging.loggers.has('TheNoOpLogger')).is.false
       var noOpLogger = Logging.getNoOpLogger('TheNoOpLogger')
-      expect(Logging.loggers).to.have.property('TheNoOpLogger')
-      expect(noOpLogger).is.instanceOf(NoOpLogger)
+      expect(Logging.loggers.has('TheNoOpLogger')).is.true
+      expect(noOpLogger instanceof NoOpLogger).is.true
       Logging.removeLogger('TheNoOpLogger')
-      expect(Logging.loggers).not.to.have.property('TheNoOpLogger')
+      expect(Logging.loggers.has('TheNoOpLogger')).is.false
     })
   })
 
   describe('#getArrayLogger', function(){
     it('should be an ArrayLogger', function() {
-      expect(Logging.loggers).not.to.have.property('TheArrayLogger')
-      var anArray = []
+      expect(Logging.loggers.has('TheArrayLogger')).is.false
+      var anArray : Array<Array<any>> = []
       var arrayLogger = Logging.getArrayLogger('TheArrayLogger', anArray)
-      expect(Logging.loggers).to.have.property('TheArrayLogger')
-      expect(arrayLogger).is.instanceOf(ArrayLogger)
+      expect(Logging.loggers.has('TheArrayLogger')).is.true
+      expect(arrayLogger instanceof ArrayLogger).is.true
       expect(arrayLogger.theArray).is.equal(anArray)
     })
   })
