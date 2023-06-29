@@ -5,6 +5,7 @@
   "entryPoints"        : ["lib", "test"],
   "entryPointStrategy" : "expand",
   "out"                : "docs",
+  "categorizeByGroup"  : false,
   // Theme:
   // see: https://github.com/mengxinssfd/typedoc-theme
   "theme" : "my-theme",

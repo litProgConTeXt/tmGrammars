@@ -5,11 +5,11 @@
 * We implment a TextMate Grammar parser.
 *
 * Some of the javascript in this module has been adapted from the example given
-* in the <using section of vscode-textmate:
-* https://github.com/microsoft/vscode-textmate#using>
+* in the [using section of
+* vscode-textmate](https://github.com/microsoft/vscode-textmate#using)
 *
-* We need to be aware of the problems with using <async forEach:
-* https://masteringjs.io/tutorials/fundamentals/async-foreach>
+* We need to be aware of the problems with using [async
+ *forEach](https://masteringjs.io/tutorials/fundamentals/async-foreach)
 *
 * @module
 */
@@ -38,37 +38,28 @@ interface _vscodeOnigurma {
   createOnigString(str: string): vsctmTypes.OnigString;
 }
 
-/** 
- * Class: Grammars.Grammars
- * 
- * A Global collection of loaded TextMate Grammars
- */
-class Grammars {
+// A Global collection of loaded TextMate Grammars
+export class Grammars {
 
-  /**
-   * Property: scope2grammar
-   * 
-   * 
-   */
+  // the scope -> grammar mapping
   static scope2grammar : Map<string, vsctmTypes.IRawGrammar> = new Map()
 
-  /**
-   * Property: orginalScope2grammar
-   * 
-   */
+  // the orginal scope -> grammar mapping
   static originalScope2grammar : Map<string, vsctmTypes.IRawGrammar> = new Map()
 
-  /**
-   * Property: loadedGrammars
-   * 
-   * 
-   */
-  static loadedGrammars : Map<string, boolean> = new Map()
+  // the set of loadedGrammars
+  static loadedGrammars : Set<string> = new Set()
 
+  // internal array buffer containing the oniguruma library binaries
   static _wasmBin : ArrayBuffer
+
+  // internal reference to the oniguruma library interface
   static _vscodeOnigurumaLib : any
+
+  // The registry of vscode-textmate grammars
   static registry : vsctmTypes.Registry
 
+  // The initialization of the vscode-textmate grammar registery
   static async _initGrammarsClass() {
     
     try {
@@ -123,6 +114,14 @@ class Grammars {
     });
   }
 
+  /**
+   * Given the first line of a document, choose the best base scope with which
+   * to parse this document
+   *
+   * @param aDocPath - the document path/name in the DocumentCache
+   * @param theFirstLine - the first line of the document used by the grammar to
+   * deterimine if it understands this type of document.
+   */
   static chooseBaseScope(aDocPath : string, aFirstLine : string) {
     // start by checking first line matches...
     for (const [aBaseScope, aGrammar] of Object.entries(Grammars.scope2grammar)) {
@@ -144,6 +143,17 @@ class Grammars {
     logger.warn("chooseBaseScope: no match found!")
   }
 
+  /**
+   * **asynchronously** trace the parse of a document using vscode-textmate
+   * grammars 
+   *
+   * If the `config` configuration instance is undefined, then no tracing will
+   * take place.
+   *
+   * @param aDocPath - the document path/name in the DocumentCache
+   * @param config   - a configuration instance containing the tracing
+   * configuration.
+   */
   static async traceParseOf(aDocPath : string, config : ITraceConfig | undefined) {
     var traceObj
     var traceOutput
@@ -274,6 +284,11 @@ class Grammars {
     }
   }
 
+  /**
+   * **asynchoronously** load a grammar from a path in the file-system.
+   * 
+   * @param aGrammarPath - the file-system path to the textmate grammar.
+   */
   static async loadGrammarFrom(aGrammarPath : string) {
     var aGrammar : vsctmTypes.IRawGrammar
     
@@ -288,7 +303,7 @@ class Grammars {
         return
       }
       
-      Grammars.loadedGrammars.set(aGrammarPath, true)
+      Grammars.loadedGrammars.add(aGrammarPath)
       logger.debug(`loading grammar from ${aGrammarPath}`)
       const aGrammarStr = await fsp.readFile(aGrammarPath, "utf8")
       aGrammar = JSON.parse(aGrammarStr)
@@ -308,8 +323,9 @@ class Grammars {
     }
   }
 
+  // Get all known scopes defined by the loaded grammars.
   static getKnownScopes() {
-    const knownScopes : Map<string, boolean> = new Map()
+    const knownScopes : Set<string> = new Set()
 
     function addScopesFromPatterns(somePatterns : vsctmTRG.IRawRule[]) {
       if (!somePatterns) return
@@ -329,9 +345,9 @@ class Grammars {
     }
     function addScopesFromRule(aRule : vsctmTRG.IRawRule) {
       if (!aRule) return
-      if (aRule.name)          knownScopes.set(aRule.name, true)
-      //if (aRule.scopeName)   knownScopes.set(aRule.scopeName, true)
-      if (aRule.contentName)   knownScopes.set(aRule.contentName, true)
+      if (aRule.name)          knownScopes.add(aRule.name)
+      //if (aRule.scopeName)   knownScopes.add(aRule.scopeName)
+      if (aRule.contentName)   knownScopes.add(aRule.contentName)
       if (aRule.patterns)      addScopesFromPatterns(aRule.patterns)
       if (aRule.repository)    addScopesFromRepository(aRule.repository)
       if (aRule.captures)      addScopesFromCaptures(aRule.captures)
@@ -339,16 +355,20 @@ class Grammars {
       if (aRule.endCaptures)   addScopesFromCaptures(aRule.endCaptures)
     }
     for (const [aScope, aGrammar] of Grammars.scope2grammar.entries()){
-      knownScopes.set(aScope, true)
+      knownScopes.add(aScope)
       addScopesFromPatterns(aGrammar.patterns)
       addScopesFromRepository(aGrammar.repository)
     }
     return Object.keys(knownScopes).sort()
   }
 
-
   //////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Print the given grammar
+   * 
+   * @param aBaseScope - the base scope of the grammar to be printed
+   */
   static printGrammar(aBaseScope : string) {
     if (!Grammars.scope2grammar.has(aBaseScope)) return
     console.log("--grammar----------------------------------------------------")
@@ -357,6 +377,7 @@ class Grammars {
     console.log(yaml.stringify(Grammars.scope2grammar.get(aBaseScope)))
   }
 
+  // Print all loaded grammars
   static printAllGrammars() {
     for (const aBaseScope of Object.keys(Grammars.scope2grammar).sort()) {
       Grammars.printGrammar(aBaseScope)
@@ -366,5 +387,3 @@ class Grammars {
 }
 
 Grammars._initGrammarsClass().catch((err)=>console.log(err)).finally()
-
-export { Grammars }

@@ -26,52 +26,18 @@ import { Logging, ValidLogger } from "./logging.js"
 
 const logger : ValidLogger = Logging.getLogger('lpic')
 
-/**
- * Class: Structures.SNode
- * 
- * ????
- */
-class SNode {
-  constructor() {
+// The global collection of all registered Structures
+export class Structures {
 
-  }
-}
-
-/**
- * Class: Structures.Structure
- * 
- * ???
- */
-class Structure {
-  constructor() {
-
-  }
-}
-
-/**
- * Class: Structures.Structures
- * 
- */
-class Structures {
-
-  /**
-   * Property: structs
-   *
-   * The (internal) mapping of structure names to structure objects
-   */
+  // The (internal) mapping of structure names to structure objects
   static structs : Map<string, any> = new Map()
 
   /**
-   * Function: newStructure
-   *
    * Get the named structure object, creating it if it does not already exist in
-   * the <structs> mapping.
-   * 
-   * Parameters: 
-   * 
-   * aStructureKey - the name used to refer to this structure
-   * 
-   * aStructureValue - the structure object associated to the given name
+   * the `structs` mapping.
+   *
+   * @param aStructureKey - the name used to refer to this structure
+   * @param aStructureValue - the structure object associated to the given name
    */
   static newStructure(aStructureKey : string, aStructureValue : any) {
     if (!Structures.structs.has(aStructureKey)) {
@@ -81,42 +47,28 @@ class Structures {
   }
 
   /**
-   * Function: getStructure
-   *
    * Get the named structure object
    *
-   * Parameters:
+   * @param aStructureKey - the name used to refer to this structure
    *
-   * aStructureKey - the name used to refer to this structure
-   *
-   * Returns:
-   *
-   * the specified structure object or undefined. <See the return value of
-   * Map.get:
-   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get#return_value>
+   * @returns the specified structure object or undefined. [See the return value
+   * of
+   * Map.get](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get#return_value)
    */
   static getStructure(aStructureKey : string) {
     return Structures.structs.get(aStructureKey)
   }
 
-  /**
-   * Function: getStructureNames
-   * 
-   * Return the array of the names of the currently known structures.
-   */
+  // Return the array of the names of the currently known structures.
   static getStructureNames() {
     return Object.keys(Structures.structs).sort()
   }
 
   /**
-   * Function: logStructure
-   *
    * Stringify the given structure (using YAML) and log it at the `debug` level
    * using the Pino <Logging> logger for this tool.
-   * 
-   * Parameters:
-   * 
-   * aStructureName - the name of the structure to log
+   *
+   * @param aStructureName - the name of the structure to log
    */
   static logStructure(aStructureName : string){
     if (!Structures.structs.has(aStructureName)) return
@@ -127,13 +79,9 @@ class Structures {
   }
 
   /**
-   * Function: printStructure
-   * 
    * Stringified the given structure (using YAML) and send it to the console.log
-   * 
-   * Parameters:
-   * 
-   * aStructureName - the name of the structure to send to the console
+   *
+   * @param aStructureName - the name of the structure to send to the console
    */
   static printStructure(aStructureName: string){
     if (!Structures.structs.has(aStructureName)) return
@@ -143,26 +91,11 @@ class Structures {
     console.log(yaml.stringify(Structures.structs.get(aStructureName)))
   }
 
-  /**
-   * Function: printAllStructures
-   *
-   * Stringify all known structures (using YAML) and send the result to the
-   * console.
-   */
+  // Stringify all known structures (using YAML) and send the result to the
+  // console.
   static printAllStructures() {
     for (const aStructureName of Object.keys(Structures.structs).sort()) {
       Structures.printStructure(aStructureName)
     }
   }
 }
-
-/**
- * Interface: Structures.Exports
- * 
- * Exports:
- * 
- * SNode - ??
- * 
- * Structures - The (global) interface to all known structures.
- */
-export { SNode, Structures }

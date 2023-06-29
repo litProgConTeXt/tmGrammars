@@ -1,8 +1,12 @@
 /**
  * Tracing configuration
  *
- * ConfigClass provides a collection of (example) Type-Safe (TypeScript) Config
- * class for the LPiC projects.
+ * The ConfigClasses provide a collection of Type-Safe (TypeScript)
+ * Configuration class for the LPiC projects.
+ * 
+ * This class extends the BaseConfig with configuration for:
+ * 
+ *  - extensive tracing of the parsing and building processes
  * 
  * @module
  */
@@ -12,21 +16,15 @@ import * as yaml from 'yaml'
 import { Cfgr, appendStrArg, appendRegExpArg } from "./configurator.js"
 import { BaseConfig                          } from "./configBase.js"
 
-/**
- * Class: ConfigClass.TraceConfig
- * 
- * The configuration used by the `tmgt` TextMate Grammar Tracing tool.
- */
+// The configuration used by the `tmgt` TextMate Grammar Tracing tool.
 @Cfgr.klass()
 export class TraceConfig extends BaseConfig {
 
   /**
-   * Property: showActions
-   * 
-   * (configPath: showActions)
-   * (cli: --actions)
-   * 
    * Should the actions be listed? (Default: false)
+   * 
+   * - **configPath:** showActions
+   * - **cli:* --actions
    */
   @Cfgr.cliOption(
     'showActions',
@@ -37,10 +35,10 @@ export class TraceConfig extends BaseConfig {
   showActions : boolean = false
 
   /**
-   * Property: showAllGrammars
+   * Should all grammars be shown? (Default: false)
    * 
-   * (configPath: showAllGrammars)
-   * (cli: -sag, --showAllGrammars)
+   * - **configPath:* showAllGrammars
+   * - **cli:* -sag, --showAllGrammars
    */
   @Cfgr.cliOption(
     'showAllGrammars',
@@ -51,12 +49,10 @@ export class TraceConfig extends BaseConfig {
   showAllGrammars : boolean = false
 
   /**
-   * Property: showGrammar
-   * 
-   * (configPath: showGrammar)
-   * (cli: -sg, --showGrammar)
-   * 
    * Show a specific grammar
+   * 
+   * - **configPath:* showGrammar
+   * - **cli:* -sg, --showGrammar
    */
   @Cfgr.cliOption(
     'showGrammar',
@@ -67,13 +63,11 @@ export class TraceConfig extends BaseConfig {
   showGrammars : Array<string> = []
 
   /**
-   * Property: traceLinesInclude
-   *
-   * (configPath: trace.lines.include)
-   * (cli: -tl, --traceLine)
-   *
    * An array of regular expressions identifying input lines which should be
    * traced by the `tmgt` tool.
+   *
+   * - **configPath:* trace.lines.include
+   * - **cli:* -tl, --traceLine
    */
   @Cfgr.cliOption(
     'trace.lines.include',
@@ -84,13 +78,11 @@ export class TraceConfig extends BaseConfig {
   traceLinesInclude : Array<RegExp> = []
 
   /**
-   * Property: traceLinesExclude
-   *
-   * (configPath: trace.lines.exclude)
-   * (cli: -tlx, --tlExclude)
-   *
    * An array of regular expressions identifying input lines which should not be
    * traced by the `tmgt` tool.
+   *
+   * - **configPath:* trace.lines.exclude
+   * - **cli:* -tlx, --tlExclude
    */
   @Cfgr.cliOption(
     'trace.lines.exclude',
@@ -101,12 +93,10 @@ export class TraceConfig extends BaseConfig {
   traceLinesExclude : Array<RegExp> = []
 
   /**
-   * Property: traceActionsInclude
-   *
-   * (configPath: trace.actions.include)
-   * (cli: -ta, --traceAction)
-   *
    * An array of scoped actions which should be traced by the `tmgt` tool.
+   *
+   * - **configPath:* trace.actions.include
+   * - **cli:* -ta, --traceAction
    */
   @Cfgr.cliOption(
     'trace.actions.include',
@@ -117,12 +107,10 @@ export class TraceConfig extends BaseConfig {
   traceActionsInclude : Array<RegExp> = []
 
   /**
-   * Property: traceActionsExclude
-   *
-   * (configPath: trace.actions.exclude)
-   * (cli: -tax, --taExclude)
-   *
    * An array of scoped actions which should not be traced by the `tmgt` tool.
+   *
+   * - **configPath:* trace.actions.exclude
+   * - **cli:* -tax, --taExclude
    */
   @Cfgr.cliOption(
     'trace.actions.exclude',
@@ -133,12 +121,10 @@ export class TraceConfig extends BaseConfig {
   traceActionsExclude : Array<RegExp> = []
 
   /**
-   * Property: traceScopesInclude
-   *
-   * (configPath: trace.scopes.include)
-   * (cli: -ts, --traceScope)
-   *
    * An array of scopes which should be traced by the `tmgt` tool.
+   *
+   * - **configPath:* trace.scopes.include
+   * - **cli:* -ts, --traceScope
    */
   @Cfgr.cliOption(
     'trace.scopes.include',
@@ -149,12 +135,10 @@ export class TraceConfig extends BaseConfig {
   traceScopesInclude : Array<RegExp> = []
 
   /**
-   * Property: traceScopesExclude
-   *
-   * (configPath: trace.scopes.exnclude)
-   * (cli: -tsx, --tsExclude)
-   *
    * An array of scopes which should not be traced by the `tmgt` tool.
+   *
+   * - **configPath:* trace.scopes.exnclude
+   * - **cli:* -tsx, --tsExclude
    */
   @Cfgr.cliOption(
     'trace.scopes.exclude',
@@ -165,12 +149,10 @@ export class TraceConfig extends BaseConfig {
   traceScopesExclude : Array<RegExp> = []
 
   /**
-   * Property: traceStructuresInclude
-   *
-   * (configPath: trace.structures.include)
-   * (cli: -tS, --traceStructure)
-   *
    * An array of structures which should be traced by the `tmgt` tool.
+   *
+   * - **configPath:* trace.structures.include
+   * - **cli:* -tS, --traceStructure
    */
   @Cfgr.cliOption(
     'trace.structures.include',
@@ -181,12 +163,10 @@ export class TraceConfig extends BaseConfig {
   traceStructuresInclude : Array<RegExp> = []
 
   /**
-   * Property: traceStructuresExclude
-   *
-   * (configPath: trace.structures.exclude)
-   * (cli: -tSx, --tSExclude)
-   *
    * An array of structures which should not be traced by the `tmgt` tool.
+   *
+   * - **configPath:* trace.structures.exclude
+   * - **cli:* -tSx, --tSExclude
    */
   @Cfgr.cliOption(
     'trace.structures.exclude',

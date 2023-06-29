@@ -15,29 +15,18 @@ import { Logging, ValidLogger } from "./logging.js"
 
 const logger : ValidLogger = Logging.getLogger('lpic')
 
-/*
-function readTestFile(testFile) {
-  return new Promise((resolve, reject) => {
-    fsp.readFile(
-      path.join(process.cwd(), testFile),
-      (error, data) => error ? reject(error) : resolve(data));
-  })
-}
-*/
-
-/**
- * Class: Documents.Document
- * 
- * A representation of a single document
- */
-class Document {
+// A representation of a single document
+export class Document {
+  // The file-system path to the document
   filePath : string = ""
+
+  // The document cache name of the document
   docName  : string = ""
+
+  // The contents of the document 
   docLines : Array<string> = []
 
   /**
-   * Function: constructor
-   * 
    * Does nothing at the moment...
    */
   constructor() {
@@ -45,15 +34,10 @@ class Document {
   }
 
   /**
-   * Function: refreshFromStr
-   * 
    * Refresh this document from a document string
    * 
-   * Parameters:
-   * 
-   * aDocName - TODO This is WRONG we should not change the name of this document here!
-   * 
-   * aDocStr - A string version of the document's current value
+   * @param aDocName - TODO This is WRONG we should not change the name of this document here!
+   * @param aDocStr - A string version of the document's current value
    */
   refreshFromStr(aDocName: string, aDocStr : string) {
     this.docName = aDocName
@@ -61,15 +45,11 @@ class Document {
   }
 
   /**
-   * Function: loadFromFile
-   * 
    * Load a document from a file in the file-system
    * 
    * TODO: we should NOT use the current <refreshFromString>
    * 
-   * Parameters:
-   * 
-   * aPath - A path to the file
+   * @param aPath - A path to the file
    */
   async loadFromFile(aPath: string) {
     logger.debug(`loading document from ${aPath}`)
@@ -79,66 +59,35 @@ class Document {
   }
 }
 
-/** 
- * Class: Documents.DocumentCache
- * 
- * A cache of documents
- */
-class DocumentCache {
+// A cache of documents
+export class DocumentCache {
 
-  /**
-   * Property: documents
-   * 
-   * A mapping of documents names to cached <Documents.Document>
-   */
+  // A mapping of documents names to cached <Documents.Document>
   static documents : Map<string, Document> = new Map()
 
   /**
-   * Function: hasDocument
-   * 
-   * Returns:
-   * 
-   * true if the given path exists in the document cache
-   * 
-   * Parameters:
-   * 
-   * aPath - the name of the document to find in the cache
-   * 
+   * @param aPath - the name of the document to find in the cache
+   * @returns true if the given path exists in the document cache
    */
   static hasDocument(aPath: string) {
     return DocumentCache.documents.has(aPath)
   }
 
   /** 
-   * Function: getDocument
-   *
-   * Returns:
-   *
-   * the <Documents.Document> associated with the document name OR undefined if
+   * @param aPath - the name of the document to find in the cache
+   * @returns the Document associated with the document name OR undefined if
    * there is no document with the given name
-   *
-   * Parameters:
-   * 
-   * aPath - the name of the document to find in the cache
-   * 
    */
   static getDocument(aPath: string) {
     return DocumentCache.documents.get(aPath)
   }
 
   /**
-   * Function: loadFromFile
+   * **asynchoronously** loads the document from a file in the file-system
    *
-   * Loads the document from a file in the file-system
-   *
-   * Returns:
-   *
-   * the loaded <Documents.Document> or undefined if the document could not be
-   * loaded.
-   * 
-   * Parameters:
-   * 
-   * aPath - the path to the document to load
+   * @param aPath - the path to the document to load
+   * @returns the loaded Document or undefined if the document could
+   * not be loaded.
    */
   static async loadFromFile(aPath:string) {
     const doc = new Document()
@@ -148,19 +97,11 @@ class DocumentCache {
   }
 
   /**
-   * Function: loadFromStr
-   * 
    * Loads the document from a string
    * 
-   * Returns:
-   * 
-   * the document
-   * 
-   * Parameters:
-   * 
-   * docName - a name for the document in the cache
-   * 
-   * docStr - the document as a simple string
+   * @param docName - a name for the document in the cache
+   * @param docStr - the document as a simple string
+   * @returns the document
    */
   static loadFromStr(docName:string, docStr:string) {
     const doc = new Document()
@@ -170,12 +111,3 @@ class DocumentCache {
   }
 
 }
-
-/**
- * Interface: Exports
- * 
- * Exports:
- * 
- * DocumentCache - the document cache
- */
-export { Document, DocumentCache }

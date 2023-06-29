@@ -1,9 +1,17 @@
 /**
  * Base configuration
  *
- * ConfigClass provides a collection of (example) Type-Safe (TypeScript) Config
- * class for the LPiC projects.
+ * The ConfigClasses provide a collection of Type-Safe (TypeScript)
+ * Configuration class for the LPiC projects.
  * 
+ * This is the base of the ConfigClass hierarchy.
+ * 
+ * It defines the configuration which is common to all tools for example:
+ * 
+ *  - loading grammars
+ *  - loading scoped actions
+ *  - loading builders
+ *
  * @module
  */
 
@@ -11,21 +19,15 @@ import * as yaml from 'yaml'
 
 import { Cfgr, appendStrArg } from "./configurator.js"
 
-/**
- * Class: ConfigClass.BaseConfig
- * 
- * The base configuraiton class
- */
+// The base configuration class
 @Cfgr.klass()
 export class BaseConfig {
 
   /**
-   * Property: configPaths
+   *  An array of configuration paths which will be loaded in order.
    * 
-   * (configPath: configPaths)
-   * (cli: -c, --config)
-   * 
-   * An array of configuration paths which will be loaded in order.
+   *  - **configPath:** configPaths
+   *  - **cli:**        -c, --config
    */
   @Cfgr.cliOption(
     'configPaths',
@@ -37,12 +39,10 @@ export class BaseConfig {
   configPaths : Array<string> = []
 
   /**
-   * Property: logLevel
-   * 
-   * (configPath: logLevel)
-   * (cli: -ll, --logLevel)
-   * 
    * The current Pino logLevel
+   * 
+   * - **configPath:** logLevel
+   * - **cli:** -ll, --logLevel
    */
   @Cfgr.cliOption(
     'logLevel',
@@ -53,12 +53,10 @@ export class BaseConfig {
   logLevel : string = 'info'
 
   /**
-   * Property: loadActions
-   * 
-   * (configPath: load.actions)
-   * (cli: -la, -loadActions)
-   * 
    * An array of paths to LPiC actions to be used in this tool.
+   * 
+   * - **configPath:** load.actions
+   * - **cli:** -la, -loadActions
    */
   @Cfgr.cliOption(
     'load.actions',
@@ -69,12 +67,10 @@ export class BaseConfig {
   loadActions : Array<string> = []
 
   /**
-   * Property: loadBuilders
-   * 
-   * (configPath: load.builders)
-   * (cli: -lb, --loadBuilders)
-   * 
    * An array of paths to LPiC builders to be used in this tool.
+   * 
+   * - **configPath:** load.builders
+   * - **cli:** -lb, --loadBuilders
    */
   @Cfgr.cliOption(
     'load.builders',
@@ -85,12 +81,10 @@ export class BaseConfig {
   loadBuilders : Array<string> = []
 
   /**
-   * Property: loadedGrammars
-   *
-   * (configPath: load.grammars)
-   * (cli: -lg, --loadGrammars)
-   *
    * An array of paths to TextMate/LPiC grammars to be used in this tool.
+   *
+   * - **configPath:** load.grammars
+   * - **cli:** -lg, --loadGrammars
    */
   @Cfgr.cliOption(
     'load.grammars',
@@ -101,13 +95,11 @@ export class BaseConfig {
   loadedGrammars : Array<string> = []
 
   /**
-   * Property: pathPrefix
-   *
-   * (configPath: pathPrefix)
-   * (cli: --path)
-   *
    * The path prefix to be prepended by <Configurator.Cfgr.normalizePath> to any
    * path that doesn't start with `~`
+   *
+   * - **configPath:** pathPrefix
+   * - **cli:** --path
    */
   @Cfgr.cliOption(
     'pathPrefix',
@@ -118,13 +110,11 @@ export class BaseConfig {
   pathPrefix : string = ""
 
   /**
-   * Property: savePath
-   *
-   * (configPath: savePath)
-   * (cli: -s, --save)
-   *
    * A path in the file-system to which the currently loaded configuration will
    * be saved.
+   *
+   * - **configPath:** savePath
+   * - **cli:** -s, --save
    */
   @Cfgr.cliOption(
     'savePath',
@@ -135,12 +125,10 @@ export class BaseConfig {
   savePath : string = ""
 
   /**
-   * Property: parallel
-   * 
-   * (configPath: parallel)
-   * (cli: -p, --parallel)
-   * 
    * Run all scoped actions in parallel. (Default: false)
+   * 
+   * - **configPath:** parallel
+   * - **cli:** -p, --parallel
    */
     @Cfgr.cliOption(
       'parallel',
@@ -151,11 +139,10 @@ export class BaseConfig {
     parallel : boolean = false
 
   /**
-   * Property: initialFiles
-   * 
-   * (configPath: initialFiles)
-   * 
    * The files to be parsed by the LPiC tool
+   * 
+   * - **configPath:** initialFiles
+   * - **cli:** all remaining (non-optional) arguments
    */
   @Cfgr.cliArgument(
     'initialFiles',

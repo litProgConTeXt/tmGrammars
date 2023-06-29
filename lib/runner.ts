@@ -15,6 +15,7 @@ import { Structures            } from "./structures.js"
 import { Logging, ValidLogger  } from "./logging.js"
 
 const logger : ValidLogger = Logging.getLogger('lpic')
+
 /**
  * setup a TextMate Grammar tool
  *

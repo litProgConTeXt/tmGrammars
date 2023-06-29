@@ -21,56 +21,42 @@ import { Logging, ValidLogger } from "./logging.js"
 
 const logger : ValidLogger = Logging.getLogger('lpic')
 
+/**
+ * The call pattern for all builder functions
+ * 
+ * @typeParam builderName - the name of this builder
+ * @typeParam funcPath    - the path to the module which defines this builder
+ * @typeParam func        - this builder's function
+ */
 type BuilderFunction = (
   theTokens : string[],
   theLine : number,
   theDoc : Document
 ) => void
 
-
 /**
  * Builder
  *
  * The representation of a single builder (which can be loaded, and then
  * registered, from an external collection of builders written in TypeScript)
- * 
- * @notExported
  */
 class Builder {
 
-  /**
-   * Property: name
-   * 
-   * The name of this builder
-   */
+  // The name of this builder
   name : string
 
-  /**
-   * Property: funcPath
-   * 
-   * ????
-   */
+  // The path of the module in which this builder was defined
   funcPath : string
 
-  /**
-   * Property: func
-   * 
-   * This function used to implement this builder
-   */
+  // The name of the function used to implement this builder
   func : BuilderFunction
   
   /**
-   * Function: constructor
-   * 
    * Create a new instance of a builder
    * 
-   * Parameters:
-   * 
-   * builderName - the name of this builder
-   * 
-   * funcPath - the ?? for this builder's function
-   * 
-   * func - this builder's function
+   * @param builderName - the name of this builder
+   * @param funcPath    - the path to the module which defines this builder
+   * @param func        - this builder's function
    */
   constructor(
     builderName : string,
@@ -85,18 +71,11 @@ class Builder {
     // we may want a "__str__" function...
 
   /**
-   * Function: run
+   * ***asychronously*** return the result of running this builder.
    * 
-   * Return the result of running this builder.
-   * 
-   * Parameters:
-   * 
-   * theTokens -
-   * 
-   * theLine -
-   * 
-   * theDoc - 
-   * 
+   * @param theTokens - the tokens which triggered this builder to be run
+   * @param theLine   - the line in the document which triggered this builder
+   * @param theDoc    - the document which triggered this builder
    */
   async run(theTokens : string[], theLine : number, theDoc : Document) {
     logger.debug(`running builder: ${this.name}`)
@@ -104,11 +83,25 @@ class Builder {
   }
 }
 
-class Builders {
+/**
+ * The global collection of known builders.
+ */
+export class Builders {
 
+  // The dictionary of builders indexed by a builder name
   static builders : Map<string, Builder[]> = new Map()
-  static loadedBuilderDirs : Map<string, boolean> = new Map()
 
+  // The set of already loaded builders
+  static loadedBuilderDirs : Set<string> = new Set()
+
+  /**
+   * Add a new builder to the dictionary of know builders
+   *
+   * @param builderName - the name of this builder
+   * @param funcPath    - the file-system path of the module which defines this
+   *                      builder
+   * @param aFunc       - the function which implements this builder
+   */
   static addBuilder(
     builderName : string,
     funcPath    : string,
@@ -126,11 +119,18 @@ class Builders {
     }
   }
 
+  /**
+   * ***asynchronously*** load builders from a directory
+   *
+   * @param aDir   - the directory from which to load builders
+   * @param config - a configuration instance passed to the builder registration
+   *                 function.
+   */
   static async loadBuildersFrom(aDir : string, config : Config) {
     logger.debug(`loading builders from ${aDir}`)
     aDir = Cfgr.normalizePath(aDir)
      if (Builders.loadedBuilderDirs.has(aDir)) return
-    Builders.loadedBuilderDirs.set(aDir, true)
+    Builders.loadedBuilderDirs.add(aDir)
     const openedDir = await fsp.opendir(aDir)
     const builders2Load = []
     for await (const dirEnt of openedDir) {
@@ -148,5 +148,3 @@ class Builders {
   }
 
 }
-
-export { Builders }
