@@ -207,9 +207,7 @@ export class Logging {
    * @param loggerName - the name of the NoOpLogger instance
    */
   static getNoOpLogger(loggerName : string) : NoOpLogger {
-    if (Logging.theLogger) return Logging.theLogger
-    Logging.theLogger = new NoOpLogger()
-    return Logging.theLogger
+    return new NoOpLogger
   }
 
   /**
@@ -219,9 +217,7 @@ export class Logging {
    * @param theArray - the array into which all logging will be appended.
    */
   static getArrayLogger(loggerName : string, theArray : Array<Array<any>>) : ArrayLogger {
-    if (Logging.theLogger) return Logging.theLogger
-    Logging.theLogger = new ArrayLogger(theArray)
-    return Logging.theLogger
+    return new ArrayLogger(theArray)
   }
 
 }
