@@ -13,7 +13,7 @@
     "moduleResolution"    : "node16",
     "rootDirs"            : ["lib", "test"],
     "declaration"         : true,
-    "outDir"              : "out",
+    "outDir"              : "dist",
     "esModuleInterop"     : true,
     "allowImportingTsExtensions" : true,
     // ignores errors with our use of Webassembly

@@ -10,16 +10,18 @@
 
 import * as yaml from "yaml"
 
+// The following two lines MUST be run befor ANY other lpic-modules
+import { Logging, ValidLogger     } from "./logging.js"
+const logger : ValidLogger = Logging.getLogger('lpic')
+
 import { Cfgr                     } from "./configurator.js"
 import { BaseConfig               } from "./configBase.js"
 import { TraceConfig as Config    } from "./configTrace.js"
 import { Grammars                 } from "./grammars.js"
 import { ScopeActions             } from "./scopeActions.js"
 import { Structures               } from "./structures.js"
-import { Logging, ValidLogger     } from "./logging.js"
 import { setupTMGTool, runTMGTool } from "./runner.js"
 
-const logger : ValidLogger = Logging.getLogger('lpic')
 const config : Config = setupTMGTool(
   'tmgt', 'CLI to manipulate textmate grammars', '0.0.1', Config
 )
@@ -41,4 +43,6 @@ if (0 < config.showGrammars.length) {
   process.exit(0)
 }
 
-runTMGTool(config).catch((err : any) => logger.error(err)).finally()
+runTMGTool(config)
+  .catch((err : any) => logger.error(err))
+  .finally(() => Logging.close())

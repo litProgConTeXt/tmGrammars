@@ -33,7 +33,7 @@ export function setupTMGTool(
 ) : any {
 
   console.log(`Logger       level: ${logger.level}`)
-  console.log(`Logger logFilePath: ${Logging.logFilePath}`)
+  console.log(`Logger logFilePath: ${logger.logFilePath}`)
 
   var config = new configClass()
   var context : Map<string, string> = new Map()

@@ -45,19 +45,6 @@ describe('NoOpLogger', function () {
 })
 
 describe('Logging', function () {
-  describe('#options', function () {
-    it('can be set (initially empty object)', function () {
-      expect(Logging.options).is.eql({})
-      Logging.setOptions({})
-      assert.isDefined(Logging.options)
-    })
-  })
-
-  describe('#destination', function () {
-    it('can be set (initially pino.destination(Logging.logFilePath) )', function () {
-      assert.isDefined(Logging.destination)
-    })
-  })
 
   describe('#getLogger', function () {
     it('should return correct loggers', function () {
