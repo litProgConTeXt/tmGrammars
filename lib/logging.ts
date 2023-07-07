@@ -271,7 +271,7 @@ export class Logging {
    *
    * **Envionrment Variables**: If **LPIC_LOG_LEVEL** is set to a *number* then
    * that number (as a string) will be converted to a number and be used to set
-   * the initial logLevel.
+   * the initial logLevel. The initial (default) log level is 30 (INFO).
    * 
    * @param logName - The name of the logger created (typically 'lpic')
    *
@@ -284,8 +284,9 @@ export class Logging {
     if (process.env.LPIC_NO_LOG)           Logging.theLogger = new NoOpLogger(logName)
     else if (process.env.LPIC_CONSOLE_LOG) Logging.theLogger = new ConsoleLogger(logName)
     else                                   Logging.theLogger = new FileLogger(logName)
-    if (process.env.LPIC_LOG_LEVEL) 
+    if (process.env.LPIC_LOG_LEVEL) {
       Logging.theLogger.setLevel(Number(process.env.LPIC_LOG_LEVEL))
+    }
     return Logging.theLogger
   }
 
@@ -325,5 +326,6 @@ export class Logging {
   // Close the currently created ValidLogger
   static close() {
     if (Logging.theLogger) Logging.theLogger.close()
+    delete Logging.theLogger
   }
 }

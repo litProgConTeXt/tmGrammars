@@ -13,7 +13,17 @@ import * as sinon                 from 'sinon'
 
 import { ConsoleLogger, FileLogger, NoOpLogger, Logging } from '../lib/logging.js'
 
+//var clSpy  = sinon.spy()
+
+beforeEach(function() {
+//  sinon.restore()
+//  clSpy = sinon.spy()
+//  var openSyncStub = sinon.stub(fs, "openSync").callsFake(clSpy).returns(42)
+  var closeSyncStub = sinon.stub(fs, "closeSync")
+})
+
 afterEach(function(){
+  Logging.close()
   sinon.restore()
 })
 
@@ -52,8 +62,7 @@ describe('ConsoleLogger', function(){
 describe('FileLogger', function(){
   describe('#constructor()', function () {
     it('should return FileLogger instance', function () {
-      var flSpy  = sinon.spy()
-      var flStub = sinon.stub(fs, "openSync").callsFake(flSpy).returns(42)
+      var flStub = sinon.stub(fs, "openSync").returns(42)
       process.env.LPIC_LOG_FILE = "test.log"
       var fLogger = new FileLogger("aLog1")
       expect(fLogger.logFilePath).is.equal("test.log")
@@ -70,7 +79,92 @@ describe('FileLogger', function(){
 })
 
 describe('Logging', function () {
+  describe('#getLogger', function() {
+    it('should return the correct type of logger', function() {
+      var flStub = sinon.stub(fs, "openSync").returns(42)
 
+      var aLogger = Logging.getLogger("aLog1")
+      expect(aLogger).is.instanceof(FileLogger)
+      expect(aLogger.logName).is.equal("aLog1")
+      expect(aLogger.level).is.equal(30)
+
+      aLogger = Logging.getLogger("aLog1a")
+      expect(aLogger).is.instanceof(FileLogger)
+      expect(aLogger.logName).is.not.equal("aLog1a")
+      expect(aLogger.logName).is.equal("aLog1")
+      expect(aLogger.level).is.equal(30)
+      delete Logging.theLogger
+
+      process.env.LPIC_LOG_LEVEL="20"
+      aLogger = Logging.getLogger("aLog2")
+      expect(aLogger).is.instanceof(FileLogger)
+      expect(aLogger.logName).is.equal("aLog2")
+      expect(aLogger.level).is.equal(20)
+      delete Logging.theLogger
+
+      process.env.LPIC_CONSOLE_LOG="true"
+      aLogger = Logging.getLogger("aLog3")
+      expect(aLogger).is.instanceof(ConsoleLogger)
+      expect(aLogger.logName).is.equal("aLog3")
+      expect(aLogger.level).is.equal(20)
+      delete Logging.theLogger
+
+      delete process.env.LPIC_LOG_LEVEL
+      aLogger = Logging.getLogger("aLog4")
+      expect(aLogger).is.instanceof(ConsoleLogger)
+      expect(aLogger.logName).is.equal("aLog4")
+      expect(aLogger.level).is.equal(30)
+      delete Logging.theLogger
+
+      process.env.LPIC_NO_LOG="true"
+      aLogger = Logging.getLogger("aLog5")
+      expect(aLogger).is.instanceof(NoOpLogger)
+      expect(aLogger.logName).is.equal("aLog5")
+      expect(aLogger.level).is.equal(30)
+      delete Logging.theLogger
+
+      delete process.env.LPIC_CONSOLE_LOG
+      aLogger = Logging.getLogger("aLog6")
+      expect(aLogger).is.instanceof(NoOpLogger)
+      expect(aLogger.logName).is.equal("aLog6")
+      expect(aLogger.level).is.equal(30)
+      delete Logging.theLogger
+
+      delete process.env.LPIC_NO_LOG
+      aLogger = Logging.getLogger("aLog7")
+      expect(aLogger).is.instanceof(FileLogger)
+      expect(aLogger.logName).is.equal("aLog7")
+      expect(aLogger.level).is.equal(30)
+    })
+  })
+
+  describe('#getNoOpLogger', function() {
+    it('should return a NoOpLogger', function() {
+      //var flStub1 = sinon.stub(fs, "openSync").returns(42)
+
+      var aLogger = Logging.getNoOpLogger("aLog")
+      expect(aLogger).is.instanceof(NoOpLogger)
+      expect(Logging.theLogger).is.equal(aLogger)
+    })
+  })
   
+  describe('#getConsoleLogger', function() {
+    it('should return a ConsoleLogger', function() {
+      //var flStub1 = sinon.stub(fs, "openSync").returns(42)
 
+      var aLogger = Logging.getConsoleLogger("aLog")
+      expect(aLogger).is.instanceof(ConsoleLogger)
+      expect(Logging.theLogger).is.equal(aLogger)
+    })
+  })
+
+  describe('#getFileLogger', function() {
+    it('should return a FileLogger', function() {
+      var flStub1 = sinon.stub(fs, "openSync").returns(42)
+
+      var aLogger = Logging.getFileLogger("aLog")
+      expect(aLogger).is.instanceof(FileLogger)
+      expect(Logging.theLogger).is.equal(aLogger)
+    })
+  })
 })
