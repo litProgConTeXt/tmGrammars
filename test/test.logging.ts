@@ -1,8 +1,21 @@
 /**
- * Logging testing
+ * Testing Logging
+ *
+ * We test the logging module by:
+ *
+ * - individually constructing Console, NoOp and File Loggers, checking:
+ *   - their logging levels, 
+ *   - that they log at all levels below the logging level
+ *   - that they do not log at any levels above the logging level
+ *   - While testing the `FileLogger` we manipulate the `LPIC_LOG_FILE`, and
+ *     `LPIC_LOG_PREFIX` environment variables to ensure the correct behaviour.
  * 
- * We test the logging module
- * 
+ * - Using the Logging `getLogger`, `getNoOpLogger`, `getConsoleLogger` and
+ *   `getFileLogger` methods to ensure the correct loggers are returned.
+ *
+ *   - While testing the `getLogger` method we manipulate the `LPIC_NO_LOG`,
+ *     `LPIC_CONSOLE_LOG` and `LPIC_LOG_LEVEL` environment variables to ensure
+ *     the correct behaviour.
  * @module
  */
 

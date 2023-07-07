@@ -1,4 +1,21 @@
-
+/**
+ * Testing Structures
+ *
+ * We test the Structures module by:
+ *
+ * - first trying to `getStructure` using a name we know does not exist
+ *
+ * - then using `newStructure` to register a simple structure (Array) using the
+ *   name `test2`
+ *
+ * - then using `getStructure` to get the previously registered structure
+ *   `test2`
+ *
+ * - the using `getStructureNames` check that the result has the single name
+ *   `test2`.
+ *
+ * @module
+ */
 import { expect, should, assert } from  'chai'
 
 import { Structures } from '../lib/structures.js'
