@@ -70,10 +70,11 @@ export class Grammars {
     
     try {
       // try to find onig.wasm assuming we are in the development setup
+      console.log(path.dirname(__filename))
       Grammars._wasmBin = await fsp.readFile(
         path.join(
             path.dirname(__filename),
-          '../node_modules/vscode-oniguruma/release/onig.wasm'
+          '../../node_modules/vscode-oniguruma/release/onig.wasm'
         )
       )
     } catch (err) {

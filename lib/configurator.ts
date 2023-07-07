@@ -584,6 +584,11 @@ export class Cfgr {
       }
     })
     cliArgs.parse(process.argv)
+    if ((0 < cliArgs.args.length) && aConfigInstance['initialFiles']) {
+      for (const anInitialFile in cliArgs.args) {
+        aConfigInstance['initialFiles'].push(anInitialFile)
+      }
+    }
     var cliOpts = cliArgs.opts()
     logger.debug(typeof cliOpts)
     Object.keys(cliOpts).forEach(function(aKey: string){

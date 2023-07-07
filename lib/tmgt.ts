@@ -45,4 +45,6 @@ if (0 < config.showGrammars.length) {
 
 runTMGTool(config)
   .catch((err : any) => logger.error(err))
-  .finally(() => Logging.close())
+  .finally()
+
+ Logging.close()
