@@ -44,6 +44,12 @@ const logger : ValidLogger = Logging.getLogger('lpic')
  *
  * An argParser is added to the cliOption or cliArgument decorators to specify
  * how command line arguments should be added to the configuration instance.
+ * 
+ * @param newArg - the value of the new option or argument
+ * @param oldArg - the array of existing options or arguments collected for this type
+ *                 of option or argument
+ * 
+ * @returns an (flat) Array of all new and old arguments.
  */
 type ArgParserFunction =
   (newArg : string, oldArg : any | any[] | undefined) => any
@@ -58,6 +64,8 @@ type ArgParserFunction =
  * @param newArg - the value of the new option or argument
  * @param oldArg - the array of existing options or arguments collected for this
  *                 type of option or argument
+ * 
+ * @returns an (flat) Array of all new and old arguments as Strings.
  */
 export function appendStrArg(newArg : string, oldArg : string | string[] | undefined) {
   if (oldArg === undefined) oldArg = []
@@ -76,6 +84,8 @@ export function appendStrArg(newArg : string, oldArg : string | string[] | undef
  * @param newArg - the value of the new option or argument
  * @param oldArg - the array of existing options or arguments collected for this type
  *                 of option or argument
+ * 
+ * @returns an (flat) Array of all new and old arguments converted to RegExps.
  */
 export function appendRegExpArg(newArg : string, oldArg : RegExp | RegExp[] | undefined) {
   if (oldArg === undefined) oldArg = []
@@ -141,6 +151,9 @@ type SString = string | symbol
 
 // Cfgr is the global Configurator class (it has no useful instances)
 export class Cfgr {
+
+  // Does nothing... do not use
+  constructor() {}
 
   //////////////////////////////////////////////////////////////////////////////
   // @cateogry Path normalization

@@ -18,10 +18,14 @@
 import * as yaml from 'yaml'
 
 import { Cfgr, appendStrArg } from "./configurator.js"
+import { ConsoleLogger }      from "./logging.js"
 
 // The base configuration class
 @Cfgr.klass()
 export class BaseConfig {
+
+  // Does nothing... do not use
+  constructor() {}
 
   /**
    *  An array of configuration paths which will be loaded in order.
@@ -39,7 +43,7 @@ export class BaseConfig {
   configPaths : Array<string> = []
 
   /**
-   * The current Pino logLevel
+   * The current logger logLevel (see: {@link ConsoleLogger.level})
    * 
    * - **configPath:** logLevel
    * - **cli:** -ll, --logLevel
@@ -47,7 +51,7 @@ export class BaseConfig {
   @Cfgr.cliOption(
     'logLevel',
     '-ll, --logLevel <levelName>',
-    'Set the Pino log level',
+    'Set the logger log level',
     undefined
   )  
   logLevel : string = 'info'
@@ -95,8 +99,8 @@ export class BaseConfig {
   loadedGrammars : Array<string> = []
 
   /**
-   * The path prefix to be prepended by <Configurator.Cfgr.normalizePath> to any
-   * path that doesn't start with `~`
+   * The path prefix to be prepended by {@link Cfgr.normalizePath } to any path
+   * that doesn't start with `~`
    *
    * - **configPath:** pathPrefix
    * - **cli:** --path
@@ -150,5 +154,5 @@ export class BaseConfig {
     'The documents to parse',
     appendStrArg
   )
-  initialFiles = []
+  initialFiles : string[] = []
 }

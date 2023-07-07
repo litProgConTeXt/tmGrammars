@@ -16,6 +16,7 @@
  *
  * @module
  */
+
 import { expect, should, assert } from  'chai'
 
 import { Structures } from '../lib/structures.js'

@@ -1,6 +1,9 @@
 /**
- * Scope actions
- * 
+ * LPiC Scope actions
+ *
+ * The LPiC socpe actions are javascript methods, called 'actions', which are
+ * run whenever a given scope is found while parsing a document.
+ *
  * @module
  */
 
@@ -22,12 +25,19 @@ const logger : ValidLogger = Logging.getLogger('lpic')
 
 /**
  * The protype scopeActionFunction
+ * 
+ * @param aScope - the scope associated with this action
+ * @param theScope - the actual scope which triggered this action
+ * @param theTokens - the document tokens which triggered this action
+ * @param theLine - the number of the line which triggered this action
+ * @param theDoc - the document which was scanned when this action was
+ * triggered.
  */
 type ScopeActionFunction = (
   aScope: string, 
   theScope : string,
   theTokens : string[],
-  theLine : number | undefined,
+  theLine : number,
   theDoc : Document | undefined
 ) => void
 
@@ -67,6 +77,12 @@ class ScopeAction {
    * @param theLine - the number of the line which triggered this action
    * @param theDoc - the document which was scanned when this action was
    * triggered.
+   *
+   * @returns A Promise which when fulfilled, has run the associated scoped
+   * action using the (triggering) scope, tokens, document and line number. The
+   * action may store the data it extracts to/from an associated structure
+   * registered with the Structures module. It generally should *not* write
+   * files to the file-system.
    */
   async run(
     theScope : string,
@@ -89,6 +105,9 @@ export class ScopeActions {
 
   // The set of already loaded directories containing scoped actions
   static loadedActionDirs : Set<string> = new Set()
+
+  // Does nothing... not used
+  constructor() {}
 
   /**
    * Add a scoped action
@@ -117,7 +136,7 @@ export class ScopeActions {
    * 
    * @param scopeStr - the scope
    */
-  static getAction(scopeStr : string) {
+  static getAction(scopeStr : string) : ScopeAction[] | undefined {
     return ScopeActions.actions.get(scopeStr)
   }
 
@@ -126,17 +145,23 @@ export class ScopeActions {
    * 
    * @param scopeStr - a scope
    */
-  static hasAction(scopeStr : string) {
+  static hasAction(scopeStr : string) : ScopeAction[] | undefined {
     return ScopeActions.getAction(scopeStr)
   }
 
   /**
-   * Load scoped actions from the given directory.
+   * **asynchronously** load scoped actions from the given directory.
    *
    * @param aDir - the directory from which to load scoped action
    * implementations
    * @param config - a configuration instance passed to the action registration
-   *                 function.   */
+   *                 function.
+   *
+   * @returns A Promise which when fulfilled, has loaded all javascript modules
+   * in the given directory. Each javascript module should contain one or more
+   * scoped actions which are registered with the ScopedActions module using the
+   * `registerActions` method.
+   */
   static async loadActionsFrom(aDir : string, config : Config) {
     logger.debug(`loading actions from ${aDir}`)
     aDir = Cfgr.normalizePath(aDir)
@@ -159,7 +184,8 @@ export class ScopeActions {
   }
 
   /**
-   * Run all scoped actions with scopes starting with the given `scopeProbe`
+   * **asynchronously** run all scoped actions with scopes starting with the
+   * given `scopeProbe`
    *
    * @param scopeProbe - the probe used to find appropriate scoped actions
    * @param theScope - the scope in which these actions have been triggered.
@@ -169,6 +195,12 @@ export class ScopeActions {
    * triggered
    * @param theDoc - the document for which these actions are being triggered
    * @param runParallel - can these actions be run in parallel?
+   *
+   * @returns A Promise which when fulfilled, has run all of the associated
+   * actions using the tokens, document and line number provided. The actions
+   * may store the data it extracts to/from an associated structure registered
+   * with the Structures module. It generally should *not* write files to the
+   * file-system.
    */
   static async runActionsStartingWith(
     scopeProbe  : string,
@@ -206,13 +238,22 @@ export class ScopeActions {
     return scopesWithActions
   }  
 
-  // print all loaded actions
-  static printActions() {
+  // Log all loaded actions at the `debug` level using the current logger.
+  static logActions() {
     logger.debug("--actions-----------------------------------------------------")
     for (const [aBaseScope, anAction] of ScopeActions.actions.entries()) {
       logger.debug(anAction)
     }
     logger.debug("--------------------------------------------------------------")
+  }
+
+  // Print all loaded actions to the console.log
+  static printActions() {
+    console.log("--actions-----------------------------------------------------")
+    for (const [aBaseScope, anAction] of ScopeActions.actions.entries()) {
+      console.log(anAction)
+    }
+    console.log("--------------------------------------------------------------")
   }
 
 }                    

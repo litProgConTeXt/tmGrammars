@@ -53,7 +53,8 @@ export function setupTMGTool(
  * ***asynchronously*** run a TextMate Grammar tool
  *
  * @param config - a fully configured configuration instance
- * @returns a Promise to be finalized
+ * @returns a Promise which when fulfilled means that the tool has run
+ * successfully.
  */
 export async function runTMGTool(config : BaseConfig ) {
 

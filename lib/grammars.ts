@@ -41,6 +41,9 @@ interface _vscodeOnigurma {
 // A Global collection of loaded TextMate Grammars
 export class Grammars {
 
+  // Does nothing... do not use
+  constructor () {}
+
   // the scope -> grammar mapping
   static scope2grammar : Map<string, vsctmTypes.IRawGrammar> = new Map()
 
@@ -60,6 +63,9 @@ export class Grammars {
   static registry : vsctmTypes.Registry
 
   // The initialization of the vscode-textmate grammar registery
+  //
+  // @returns A Promise which when fulfilled means that the Grammars module has
+  // been fully initialized and is ready for use.
   static async _initGrammarsClass() {
     
     try {
@@ -153,6 +159,11 @@ export class Grammars {
    * @param aDocPath - the document path/name in the DocumentCache
    * @param config   - a configuration instance containing the tracing
    * configuration.
+   *
+   * @returns A Promise which when fulfilled means that the document provided
+   * has been parsed and all known actions have been run for all scopes found
+   * while parsing. The triggered actions normally store any data extracted from
+   * the document in various named Structures in the Structures module.
    */
   static async traceParseOf(aDocPath : string, config : ITraceConfig | undefined) {
     var traceObj
@@ -286,8 +297,11 @@ export class Grammars {
 
   /**
    * **asynchoronously** load a grammar from a path in the file-system.
-   * 
+   *
    * @param aGrammarPath - the file-system path to the textmate grammar.
+   *
+   * @returns A Promise which when fulfilled means that the indicated text-mate
+   * grammar has been loaded.
    */
   static async loadGrammarFrom(aGrammarPath : string) {
     var aGrammar : vsctmTypes.IRawGrammar

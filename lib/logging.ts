@@ -19,6 +19,121 @@ export type ValidLogger = ConsoleLogger | NoOpLogger | FileLogger
 // The type of a ValidLogger or (possibly) undefined
 export type MaybeLogger = ValidLogger | undefined
 
+/*
+// The logger LogLevels
+export enum LogLevel {
+  // The numical value associated with the TRACE logging level
+  TRACE = 10,
+  // The numical value associated with the DEBUG logging level
+  DEBUG = 20,
+  // The numical value associated with the INFO logging level
+  INFO  = 30,
+  // The numical value associated with the WARN logging level
+  WARN  = 40,
+  // The numical value associated with the ERROR logging level
+  ERROR = 50,
+  // The numical value associated with the FATAL logging level
+  FATAL = 60
+}
+*/
+
+// A global (static) class used to provide a simple logging interface to all of
+// the code in a LPiC project.
+export class Logging {
+
+  // Does nothing...
+  constructor() {}
+
+  // We use the Pino logging levels to allow the use of pino-pretty
+  // see: [pino-logger-levels](https://getpino.io/#/docs/api?id=loggerlevels-object)
+
+  // The numical value associated with the TRACE logging level
+  static TRACE = 10
+  // The numical value associated with the DEBUG logging level
+  static DEBUG = 20
+  // The numical value associated with the INFO logging level
+  static INFO  = 30
+  // The numical value associated with the WARN logging level
+  static WARN  = 40
+  // The numical value associated with the ERROR logging level
+  static ERROR = 50
+  // The numical value associated with the FATAL logging level
+  static FATAL = 60
+
+  /**
+   * Check to see if logging is enabled.
+   *
+   * @param aLevel - The logging level to check
+   *
+   * @returns False
+   */
+  static theLogger : MaybeLogger
+  
+  /**
+   * Get a ValidLogger instance or create one if it has not already been
+   * created.
+   *
+   * **Envionrment Variables**: If **LPIC_LOG_LEVEL** is set to a *number* then
+   * that number (as a string) will be converted to a number and be used to set
+   * the initial logLevel. The initial (default) log level is 30 (INFO).
+   * 
+   * @param logName - The name of the logger created (typically 'lpic')
+   *
+   * @returns If the **LPIC_NO_LOG** environment variable is set, then a
+   *  NoOpLogger will be returned, otherwise if **LPIC_CONSOLE_LOG** is set then
+   *  a ConsoleLogger will be returned, otherwise a FileLogger will be returned.
+   */
+  static getLogger(logName: string) : ValidLogger {
+    if (Logging.theLogger) return Logging.theLogger
+    if (process.env.LPIC_NO_LOG)           Logging.theLogger = new NoOpLogger(logName)
+    else if (process.env.LPIC_CONSOLE_LOG) Logging.theLogger = new ConsoleLogger(logName)
+    else                                   Logging.theLogger = new FileLogger(logName)
+    if (process.env.LPIC_LOG_LEVEL) {
+      Logging.theLogger.setLevel(Number(process.env.LPIC_LOG_LEVEL))
+    }
+    return Logging.theLogger
+  }
+
+  /**
+   * Get a FileLogger instance
+   * 
+   * @param logName - The name of the logger created (typically 'lpic')
+   */
+  static getFileLogger(logName: string) : FileLogger {
+    if (Logging.theLogger) Logging.theLogger.close()
+    Logging.theLogger = new FileLogger(logName)
+    return Logging.theLogger
+  }
+
+  /**
+   * Get a ConsoleLogger instance
+   * 
+   * @param logName - The name of the logger created (typically 'lpic')
+   */
+  static getConsoleLogger(logName: string) : ConsoleLogger {
+    if (Logging.theLogger) Logging.theLogger.close()
+    Logging.theLogger = new ConsoleLogger(logName)
+    return Logging.theLogger
+  }
+
+  /**
+   *  Get a NoOpLogger instance
+   * 
+   * @param logName - The name of the logger created (typically 'lpic')
+   */
+  static getNoOpLogger(logName: string) : NoOpLogger {
+    if (Logging.theLogger) Logging.theLogger.close()
+    Logging.theLogger = new NoOpLogger(logName)
+    return Logging.theLogger
+  }
+
+  // Close the currently created ValidLogger
+  static close() {
+    if (Logging.theLogger) Logging.theLogger.close()
+    delete Logging.theLogger
+  }
+}
+
 /**
  * We implement a simple Pino like logger
  */
@@ -98,8 +213,11 @@ export class ConsoleLogger {
   // Log the arguments at the FATAL level.
   fatal(...args: any[])  {if (this.level <= 60) this.log(60, arguments)}
  
-  // The currenly logging level
-  level = 30
+  // The current logging level 
+  // (see: {@link Logging.TRACE}, {@link
+  // Logging.DEBUG}, {@link Logging.INFO}, {@link Logging.WARN}, {@link
+  // Logging.ERROR}, or {@link Logging.FATAL})
+level = 30
 
   // Set the current logging level.
   //
@@ -233,99 +351,3 @@ export class NoOpLogger extends ConsoleLogger {
   isLevelEnabled(aLevel: number)  { return false }
 }
 
-// A global (static) class used to provide a simple logging interface to all of
-// the code in a LPiC project.
-export class Logging {
-
-  // Does nothing...
-  constructor() {}
-
-  // We use the Pino logging levels to allow the use of pino-pretty
-  // see: [pino-logger-levels](https://getpino.io/#/docs/api?id=loggerlevels-object)
-
-  // The numical value associated with the TRACE logging level
-  static TRACE = 10
-  // The numical value associated with the DEBUG logging level
-  static DEBUG = 20
-  // The numical value associated with the INFO logging level
-  static INFO  = 30
-  // The numical value associated with the WARN logging level
-  static WARN  = 40
-  // The numical value associated with the ERROR logging level
-  static ERROR = 50
-  // The numical value associated with the FATAL logging level
-  static FATAL = 60
-
-  /**
-   * Check to see if logging is enabled.
-   *
-   * @param aLevel - The logging level to check
-   *
-   * @returns False
-   */
-  static theLogger : MaybeLogger
-  
-  /**
-   * Get a ValidLogger instance or create one if it has not already been
-   * created.
-   *
-   * **Envionrment Variables**: If **LPIC_LOG_LEVEL** is set to a *number* then
-   * that number (as a string) will be converted to a number and be used to set
-   * the initial logLevel. The initial (default) log level is 30 (INFO).
-   * 
-   * @param logName - The name of the logger created (typically 'lpic')
-   *
-   * @returns If the **LPIC_NO_LOG** environment variable is set, then a
-   *  NoOpLogger will be returned, otherwise if **LPIC_CONSOLE_LOG** is set then
-   *  a ConsoleLogger will be returned, otherwise a FileLogger will be returned.
-   */
-  static getLogger(logName: string) : ValidLogger {
-    if (Logging.theLogger) return Logging.theLogger
-    if (process.env.LPIC_NO_LOG)           Logging.theLogger = new NoOpLogger(logName)
-    else if (process.env.LPIC_CONSOLE_LOG) Logging.theLogger = new ConsoleLogger(logName)
-    else                                   Logging.theLogger = new FileLogger(logName)
-    if (process.env.LPIC_LOG_LEVEL) {
-      Logging.theLogger.setLevel(Number(process.env.LPIC_LOG_LEVEL))
-    }
-    return Logging.theLogger
-  }
-
-  /**
-   * Get a FileLogger instance
-   * 
-   * @param logName - The name of the logger created (typically 'lpic')
-   */
-  static getFileLogger(logName: string) : FileLogger {
-    if (Logging.theLogger) Logging.theLogger.close()
-    Logging.theLogger = new FileLogger(logName)
-    return Logging.theLogger
-  }
-
-  /**
-   * Get a ConsoleLogger instance
-   * 
-   * @param logName - The name of the logger created (typically 'lpic')
-   */
-  static getConsoleLogger(logName: string) : ConsoleLogger {
-    if (Logging.theLogger) Logging.theLogger.close()
-    Logging.theLogger = new ConsoleLogger(logName)
-    return Logging.theLogger
-  }
-
-  /**
-   *  Get a NoOpLogger instance
-   * 
-   * @param logName - The name of the logger created (typically 'lpic')
-   */
-  static getNoOpLogger(logName: string) : NoOpLogger {
-    if (Logging.theLogger) Logging.theLogger.close()
-    Logging.theLogger = new NoOpLogger(logName)
-    return Logging.theLogger
-  }
-
-  // Close the currently created ValidLogger
-  static close() {
-    if (Logging.theLogger) Logging.theLogger.close()
-    delete Logging.theLogger
-  }
-}

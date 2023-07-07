@@ -46,7 +46,7 @@ export class BuildConfig extends BaseConfig {
   buildProjDescPath : string = ""
 
   /**
-   * Should the configuraiton files be loaded?
+   * Should the configuration files be loaded?
    * 
    * - **configPath:** ignoreConfig
    */

@@ -65,6 +65,9 @@ export class DocumentCache {
   // A mapping of documents names to cached <Documents.Document>
   static documents : Map<string, Document> = new Map()
 
+  // Does nothing... do not use
+  constructor () {}
+
   /**
    * @param aPath - the name of the document to find in the cache
    * @returns true if the given path exists in the document cache
@@ -86,8 +89,8 @@ export class DocumentCache {
    * **asynchoronously** loads the document from a file in the file-system
    *
    * @param aPath - the path to the document to load
-   * @returns the loaded Document or undefined if the document could
-   * not be loaded.
+   * @returns A Promise which when fulfilled, returns the loaded Document or
+   * undefined if the document could not be loaded.
    */
   static async loadFromFile(aPath:string) {
     const doc = new Document()

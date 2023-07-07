@@ -24,9 +24,9 @@ const logger : ValidLogger = Logging.getLogger('lpic')
 /**
  * The call pattern for all builder functions
  * 
- * @typeParam builderName - the name of this builder
- * @typeParam funcPath    - the path to the module which defines this builder
- * @typeParam func        - this builder's function
+ * @param theTokens - the tokens which triggered this builder to be run
+ * @param theLine   - the line in the document which triggered this builder
+ * @param theDoc    - the document which triggered this builder
  */
 type BuilderFunction = (
   theTokens : string[],
@@ -72,10 +72,16 @@ class Builder {
 
   /**
    * ***asychronously*** return the result of running this builder.
-   * 
+   *
    * @param theTokens - the tokens which triggered this builder to be run
    * @param theLine   - the line in the document which triggered this builder
    * @param theDoc    - the document which triggered this builder
+   *
+   * @returns A Promise which when fulfilled, has run the associated builder
+   * using the tokens, document and line number provided. The builder may store
+   * the data it extracts/builds to/from an associated structure registered with
+   * the Structures module. It may also have written its extracted data to one
+   * or more files in the file-system.
    */
   async run(theTokens : string[], theLine : number, theDoc : Document) {
     logger.debug(`running builder: ${this.name}`)
@@ -93,6 +99,9 @@ export class Builders {
 
   // The set of already loaded builders
   static loadedBuilderDirs : Set<string> = new Set()
+
+  // Does nothing... not used
+  constructor() {}
 
   /**
    * Add a new builder to the dictionary of know builders
@@ -120,11 +129,34 @@ export class Builders {
   }
 
   /**
+   * Get the builders associated with this scope
+   * 
+   * @param scopeStr - the scope
+   */
+  static getBuilder(scopeStr : string) : Builder[] | undefined {
+    return Builders.builders.get(scopeStr)
+  }
+  
+  /**
+   * Are there any builders associated with this scope?
+   * 
+   * @param scopeStr - a scope
+   */
+  static hasBuilder(scopeStr : string) : Builder[] | undefined {
+    return Builders.getBuilder(scopeStr)
+  }
+  
+  /**
    * ***asynchronously*** load builders from a directory
    *
    * @param aDir   - the directory from which to load builders
    * @param config - a configuration instance passed to the builder registration
    *                 function.
+   *
+   * @returns A Promise which when fulfilled, has loaded all javascript modules
+   * in the given directory. Each javascript module should contain one or more
+   * builders which are registered with the Builders module using the
+   * `registerBuilders` method.
    */
   static async loadBuildersFrom(aDir : string, config : Config) {
     logger.debug(`loading builders from ${aDir}`)
@@ -147,4 +179,77 @@ export class Builders {
     await Promise.all(builders2Load)
   }
 
+  /**
+   * **asynchronously** run all builders with scopes starting with the given
+   * `scopeProbe`
+   *
+   * @param scopeProbe - the probe used to find appropriate builders
+   * @param theScope - the scope in which these builders have been triggered.
+   * @param someTokens - some tokens associated with the triggering of these
+   * builders
+   * @param theLine - the line of the document for which these builders are
+   * being triggered
+   * @param theDoc - the document for which these builders are being triggered
+   * @param runParallel - can these builders be run in parallel?
+   *
+   * @returns A Promise which when fulfilled, has run all of the associated
+   * builders using the tokens, document and line number provided. The builders
+   * may store the data it extracts/builds to/from an associated structure
+   * registered with the Structures module. It may also have written its
+   * extracted data to one or more files in the file-system.
+   */
+  static async runBuildersStartingWith(
+    scopeProbe  : string,
+    theScope    : string,
+    someTokens  : string[],
+    theLine     : number,
+    theDoc      : Document | undefined,
+    runParallel : boolean
+  ) {
+    const actionFuncPromises = []
+    for (const [aScope, someActions] of ScopeActions.actions.entries()) {
+      if (aScope.startsWith(scopeProbe)) {
+        for (const anAction of someActions) {
+          actionFuncPromises.push(async function(){
+            await anAction.run(theScope, someTokens, theLine, theDoc)
+          }())
+        }
+      }
+    }
+    if (runParallel) {
+      await Promise.all(actionFuncPromises)
+    } else {
+      for (const anActionFuncPromise of actionFuncPromises) {
+        await anActionFuncPromise
+      }
+    }
+  }
+  
+  // Get all scopes with builders
+  static getScopesWithBuilders() {
+    const scopesWithBuilders : Map<string, Builder[]> = new Map()
+    for (const [aScope, someBuilders] of Builders.builders.entries()){
+      scopesWithBuilders.set(aScope, someBuilders)
+    }
+    return scopesWithBuilders
+  }  
+  
+  // Log all loaded builders at the `debug` level using the current logger.
+  static logBuilders() {
+    logger.debug("--builders----------------------------------------------------")
+    for (const [aBaseScope, aBuilder] of Builders.builders.entries()) {
+      logger.debug(aBuilder)
+    }
+    logger.debug("--------------------------------------------------------------")
+  }
+  
+  // Print all loaded builders to the console.log
+  static printBuilders() {
+    console.log("--builders----------------------------------------------------")
+    for (const [aBaseScope, aBuilder] of Builders.builders.entries()) {
+      console.log(aBuilder)
+    }
+    console.log("--------------------------------------------------------------")
+  }
+  
 }
