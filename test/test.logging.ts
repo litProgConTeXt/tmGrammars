@@ -64,8 +64,7 @@ describe('ConsoleLogger', function(){
       expect(cLogger).is.instanceOf(ConsoleLogger)
       expect(cLogger.level).is.equal(30)
       cLogger.warn("This is a test")
-      expect(clSpy.getCall(0).args[0]).is.equal(40)
-      expect(clSpy.getCall(0).args[1][0]).is.equal("This is a test")
+      expect(clSpy.getCall(0).args[0]).is.equal("This is a test")
       cLogger.trace("This is another test")
       expect(clSpy.calledOnce).is.true
     })

@@ -20,30 +20,36 @@ import { TraceConfig as Config    } from "./configTrace.js"
 import { Grammars                 } from "./grammars.js"
 import { ScopeActions             } from "./scopeActions.js"
 import { Structures               } from "./structures.js"
-import { setupTMGTool, runTMGTool } from "./runner.js"
+import { setupTMGTool, loadRunner, runTMGTool } from "./runner.js"
 
-const config : Config = setupTMGTool(
-  'tmgt', 'CLI to manipulate textmate grammars', '0.0.1', Config
-)
+async function runTool() {
+  const config : Config = await <Config>(<unknown>setupTMGTool(
+    'tmgt', 'CLI to manipulate textmate grammars', '0.0.1', Config
+  ))
 
-if (config.showActions) {
-  ScopeActions.printActions()
-  process.exit(0)
-}
+  //loadRunner(config) 
 
-if (config.showAllGrammars) {
-  Grammars.printAllGrammars()
-  process.exit(0)
-}
-
-if (0 < config.showGrammars.length) {
-  for (const aBaseScope of config.showGrammars) {
-    Grammars.printGrammar(aBaseScope)
+  if (config.showActions) {
+    ScopeActions.printActions()
+    process.exit(0)
   }
-  process.exit(0)
+
+  if (config.showAllGrammars) {
+    Grammars.printAllGrammars()
+    process.exit(0)
+  }
+
+  if (0 < config.showGrammars.length) {
+    for (const aBaseScope of config.showGrammars) {
+      Grammars.printGrammar(aBaseScope)
+    }
+    process.exit(0)
+  }
+
+  await runTMGTool(config)
 }
 
-runTMGTool(config)
+runTool()
   .catch((err : any) => logger.error(err))
   .finally()
 

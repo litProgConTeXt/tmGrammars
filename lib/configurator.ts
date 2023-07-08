@@ -394,7 +394,7 @@ export class Cfgr {
    * @category Configuration Files
    */
 
-  static loadConfigFiles(aConfigInstance : any , configPaths : Array<string>) {
+  static async loadConfigFiles(aConfigInstance : any , configPaths : Array<string>) {
     var loadedPaths : Array<string> = []
     if ( ! ('configPaths' in aConfigInstance) ) {
       aConfigInstance['configPaths'] = []
@@ -411,9 +411,9 @@ export class Cfgr {
         morePaths = true
         loadedPaths.push(aConfigPath)
         logger.debug(`>>>> ${aConfigPath} >>>>`)
-        Cfgr.loadConfigFromFile(
+        await Cfgr.loadConfigFromFile(
           aConfigInstance, Cfgr.normalizePath(aConfigPath)
-        ).catch((err) => logger.error(err)).finally()
+        )
         logger.debug(`<<<< ${aConfigPath} <<<<`)
         break
       }
@@ -547,6 +547,77 @@ export class Cfgr {
   }
 
   /**
+   * Setup the Commander command line interface
+   *
+   * @param cliArgs - a new Commander instance
+   * @param name - the name of the application as used by the Commander
+   * framework.
+   * @param description - the description of the application as used by the
+   * Commander framework.
+   * @param version - the version of the application as used by the Commander
+   * framework.
+   *
+   * @category Command Line Options
+   */
+  static setupCommander(
+    cliArgs : Command, name : string, description : string, version : string
+  ) {
+    cliArgs.name(name).description(description).version(version)
+    Cfgr.cliOptions.forEach(function(aCmdOpt : CommanderOptions){
+      if (aCmdOpt.isArgument) {
+        var anArgument : Argument = new Argument(aCmdOpt.flags, aCmdOpt.description)
+        if (aCmdOpt.argParser) {anArgument.argParser(aCmdOpt.argParser) }
+        cliArgs.addArgument(anArgument)
+      } else {
+        var anOption : Option = new Option(aCmdOpt.flags, aCmdOpt.description)
+        var cliOpt = 'unknown'
+        if (anOption.long) {
+          cliOpt = anOption.long.replace('--','')
+        } else if (anOption.short) {
+          cliOpt = anOption.short.replace('--','')
+        }
+        Cfgr.cliOpt2fieldMapping.set(cliOpt, aCmdOpt.field)
+        if (aCmdOpt.argParser) { 
+          anOption.argParser(aCmdOpt.argParser)
+        }
+        cliArgs.addOption(anOption)
+      }
+    })
+  }
+
+  /**
+   * Set the configured values with their associated command line options.
+   *
+   * @param aConfigInstance - the typed configuration object/any which stores
+   * all values
+   * @param cliArgs - a configured Commander instance
+   *
+   * @category Command Line Options
+   */
+  static updateConfigFromCli(aConfigInstance : any, cliArgs : Command) {
+    if ((0 < cliArgs.args.length) && aConfigInstance['initialFiles']) {
+      cliArgs.args.forEach(function (anInitialFile) {
+        aConfigInstance['initialFiles'].push(anInitialFile)
+      })
+    }
+    var cliOpts = cliArgs.opts()
+    logger.debug(typeof cliOpts)
+    Object.keys(cliOpts).forEach(function(aKey: string){
+      var aValue = cliOpts[aKey]
+      var aField = Cfgr.cliOpt2fieldMapping.get(aKey)
+      if (aField && (typeof aConfigInstance[aField] === typeof aValue)) {
+        if (aValue instanceof Array) {
+          var valueArray : Array<string> = aValue
+          aConfigInstance[aField].push(...valueArray)
+        } else {
+          aConfigInstance[aField] = aValue          
+        }
+      }
+    })
+    Cfgr.updatePathPrefix(aConfigInstance)
+  }
+
+  /**
    * Build the Commander command line interface, then parse the command line
    * arguments, and then set the configured values with their associated command
    * line options.
@@ -564,46 +635,9 @@ export class Cfgr {
    */
   static parseCliOptions(aConfigInstance : any, name : string, description : string, version : string) {
     var cliArgs = new Command()
-    cliArgs.name(name).description(description).version(version)
-    Cfgr.cliOptions.forEach(function(aCmdOpt : CommanderOptions){
-      if (aCmdOpt.isArgument) {
-        var anArgument : Argument = new Argument(aCmdOpt.flags, aCmdOpt.description)
-        if (aCmdOpt.argParser) {anArgument.argParser(aCmdOpt.argParser) }
-        cliArgs.addArgument(anArgument)
-      } else {
-        var anOption : Option = new Option(aCmdOpt.flags, aCmdOpt.description)
-        var cliOpt = 'unknown'
-        if (anOption.long) {
-          cliOpt = anOption.long.replace('--','')
-        } else if (anOption.short) {
-          cliOpt = anOption.short.replace('--','')
-        }
-        Cfgr.cliOpt2fieldMapping.set(cliOpt, aCmdOpt.field)
-        if (aCmdOpt.argParser) { anOption.argParser(aCmdOpt.argParser) }
-        cliArgs.addOption(anOption)
-      }
-    })
+    Cfgr.setupCommander(cliArgs, name, description, version)
     cliArgs.parse(process.argv)
-    if ((0 < cliArgs.args.length) && aConfigInstance['initialFiles']) {
-      for (const anInitialFile in cliArgs.args) {
-        aConfigInstance['initialFiles'].push(anInitialFile)
-      }
-    }
-    var cliOpts = cliArgs.opts()
-    logger.debug(typeof cliOpts)
-    Object.keys(cliOpts).forEach(function(aKey: string){
-      var aValue = cliOpts[aKey]
-      var aField = Cfgr.cliOpt2fieldMapping.get(aKey)
-      if (aField && (typeof aConfigInstance[aField] === typeof aValue)) {
-        if (aValue instanceof Array) {
-          var valueArray : Array<string> = aValue
-          aConfigInstance[aField].push(...valueArray)
-        } else {
-          aConfigInstance[aField] = aValue          
-        }
-      }
-    })
-    Cfgr.updatePathPrefix(aConfigInstance)
+    Cfgr.updateConfigFromCli(aConfigInstance, cliArgs)
   }
 
   /**

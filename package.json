@@ -37,7 +37,6 @@
     "@ltd/j-toml": "^1.38.0",
     "commander": "^11.0.0",
     "deepcopy": "^2.1.0",
-    "pino": "^8.14.1",
     "vscode-languageserver-textdocument": "^1.0.8",
     "vscode-oniguruma": "^1.7.0",
     "vscode-textmate": "^9.0.0",

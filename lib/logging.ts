@@ -81,22 +81,22 @@ export class ConsoleLogger {
    * @param logLevel - one of Pino's log levels
    * @param theArguments - the collection of Pino log arguments
    */
-  log(logLevel: number, theArguments: object) {
-    console.log(logLevel, theArguments)
+  log(logLevel: number, ...theArguments: Array<any>) {
+    console.log(...theArguments)
   }
 
   // Log the arguments at the TRACE level.
-  trace(...args: any[])  {if (this.level <= 10) this.log(10, arguments)}
+  trace(...args: any[])  {if (this.level <= 10) this.log(10, ...arguments)}
   // Log the arguments at the DEBUG level.
-  debug(...args: any[])  {if (this.level <= 20) this.log(20, arguments)}
+  debug(...args: any[])  {if (this.level <= 20) this.log(20, ...arguments)}
   // Log the arguments at the INFO level.
-  info(...args: any[])   {if (this.level <= 30) this.log(30, arguments)}
+  info(...args: any[])   {if (this.level <= 30) this.log(30, ...arguments)}
   // Log the arguments at the WARN level.
-  warn(...args: any[])   {if (this.level <= 40) this.log(40, arguments)}
+  warn(...args: any[])   {if (this.level <= 40) this.log(40, ...arguments)}
   // Log the arguments at the ERROR level.
-  error(...args: any[])  {if (this.level <= 50) this.log(50, arguments)}
+  error(...args: any[])  {if (this.level <= 50) this.log(50, ...arguments)}
   // Log the arguments at the FATAL level.
-  fatal(...args: any[])  {if (this.level <= 60) this.log(60, arguments)}
+  fatal(...args: any[])  {if (this.level <= 60) this.log(60, ...arguments)}
  
   // The current logging level 
   // (see: {@link Logging.TRACE}, {@link
