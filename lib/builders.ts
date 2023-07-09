@@ -68,8 +68,6 @@ class Builder {
     this.func     = actionFunc 
   }
 
-    // we may want a "__str__" function...
-
   /**
    * ***asychronously*** return the result of running this builder.
    *
@@ -172,7 +170,7 @@ export class Builders {
         logger.debug(`  loading ${aPath}`)
         const aModule = await import(aPath)
         logger.debug(`  loaded ${aPath}`)
-        aModule.registerBuilders(config, Builders, Grammars, ScopeActions, Structures, logger)
+        aModule.registerBuilders(config)
         logger.debug(`  registered ${aPath}`)          
       }())
     }

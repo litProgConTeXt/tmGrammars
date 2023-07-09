@@ -176,7 +176,7 @@ export class ScopeActions {
         logger.debug(`  loading ${aPath}`)
         const aModule = await import(aPath)
         logger.debug(`  loaded ${aPath}`)
-        aModule.registerActions(config, Config, Builders, Grammars, ScopeActions, Structures, logger)
+        aModule.registerActions(config)
         logger.debug(`  registered ${aPath}`)          
       }())
     }

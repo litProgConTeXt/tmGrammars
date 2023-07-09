@@ -20,7 +20,7 @@ import { TraceConfig as Config    } from "./configTrace.js"
 import { Grammars                 } from "./grammars.js"
 import { ScopeActions             } from "./scopeActions.js"
 import { Structures               } from "./structures.js"
-import { setupTMGTool, loadRunner, runTMGTool } from "./runner.js"
+import { setupTMGTool, runTMGTool } from "./runner.js"
 
 async function runTool() {
   const config : Config = await <Config>(<unknown>setupTMGTool(
