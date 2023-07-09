@@ -176,7 +176,7 @@ export class Builders {
     const openedDir = await fsp.opendir(aDir)
     const builders2Load = []
     for await (const dirEnt of openedDir) {
-      if (!dirEnt.name.endsWith(".mjs")) continue
+      if (!dirEnt.name.endsWith(".js")) continue
       builders2Load.push(async function() {
         const aPath = path.join(aDir, dirEnt.name)
         logger.debug(`  loading ${aPath}`)

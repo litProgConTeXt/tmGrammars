@@ -96,7 +96,7 @@ export class BaseConfig {
     'Load a grammar from the file system (JSON|PLIST)',
     appendStrArg
   )
-  loadedGrammars : Array<string> = []
+  loadGrammars : Array<string> = []
 
   /**
    * The path prefix to be prepended by {@link Cfgr.normalizePath } to any path

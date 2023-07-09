@@ -8,6 +8,7 @@ import * as yaml from "yaml"
 
 import { Cfgr                  } from "./configurator.js"
 import { BaseConfig            } from "./configBase.js"
+import { Builders              } from "./builders.js"
 import { TraceConfig as Config } from "./configTrace.js"
 import { Grammars              } from "./grammars.js"
 import { ScopeActions          } from "./scopeActions.js"
@@ -35,7 +36,7 @@ export async function setupTMGTool(
   console.log(`Logger       level: ${logger.level}`)
   console.log(`Logger logFilePath: ${logger.logFilePath}`)
 
-  var config = new configClass()
+  var config : BaseConfig = <BaseConfig> new configClass()
   var context : Map<string, string> = new Map()
   context.set('configBaseName', progName)
   Cfgr.updateDefaults(config, context)
@@ -46,7 +47,6 @@ export async function setupTMGTool(
   logger.debug(yaml.stringify(config))
   logger.debug("--------------------------------------------------------------")
 
-  console.log("TRYING TO LOAD ACTIONS")
   if (config.loadActions && 0 < config.loadActions.length) {
     logger.debug("\n--loading actions----------------------------------------")
     await Promise.all(config.loadActions.map( async (anActionsPath : string) => {
@@ -55,46 +55,34 @@ export async function setupTMGTool(
       logger.debug(`finished loading actions from [${anActionsPath}]`)
     }))
     logger.debug("---------------------------------------------------------")
-  } else {
-    console.log("FAILED")
+  }
+  
+  if (config.loadBuilders && 0 < config.loadBuilders.length) {
+    logger.debug("\n--loading builders---------------------------------------")
+    await Promise.all(config.loadBuilders.map( async (aBuildersPath : string) => {
+      logger.debug(`starting to load builders from [${aBuildersPath}]`)
+      await Builders.theBuilders.loadBuildersFrom(aBuildersPath, config)
+      logger.debug(`finished loading builders from [${aBuildersPath}]`)
+    }))
+    logger.debug("---------------------------------------------------------")
+  }
+
+  if (config.loadGrammars && 0 < config.loadGrammars.length) {
+    logger.debug("\n--loading grammars---------------------------------------")
+    await Promise.all(config.loadGrammars.map( async (aGrammarPath : string) => {
+      logger.debug(`starting to load grammar from [${aGrammarPath}]`)
+      await Grammars.theGrammars.loadGrammarFrom(aGrammarPath)
+      logger.debug(`finished loading grammar from [${aGrammarPath}]`)
+    }))     
+    logger.debug("---------------------------------------------------------")
   }
 
   return config
-}
+}  
 
 
 export function loadRunner(config : BaseConfig) {
   /*
-  
-  if (config.loadBuilders && 0 < config.loadBuilders.length) {
-    if (verbose) {
-      console.log("\n--loading builders---------------------------------------")
-    }
-    await Promise.all(config.loadBuilders.map( async (aBuildersPath) => {
-      if (verbose) console.log(`starting to load builders from [${aBuildersPath}]`)
-      await Builders.loadBuildersFrom(aBuildersPath, config)
-        .catch(err => console.log(err))
-        if (verbose) console.log(`finished loading builders from [${aBuildersPath}]`)
-    }))
-    if (verbose) {
-      console.log("---------------------------------------------------------")
-    }
-  }
-  
-  if (config.loadGrammar && 0 < config.loadGrammar.length) {
-    if (verbose) {
-      console.log("\n--loading grammars---------------------------------------")
-    }
-    await Promise.all(config.loadGrammar.map( async (aGrammarPath) => {
-      if (verbose) console.log(`starting to load grammar from [${aGrammarPath}]`)
-      await Grammars.loadGrammarFrom(aGrammarPath, config.verbose).catch(err => console.log(err))
-      if (verbose) console.log(`finished loading grammar from [${aGrammarPath}]`)
-    }))     
-    if (verbose) {
-      console.log("---------------------------------------------------------")
-    }
-  }
-  
   ////////////////////////////////////////////////////////////////////////////
   // remove pathPrefix from the remaining command line arguments
   

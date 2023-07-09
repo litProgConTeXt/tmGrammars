@@ -17,6 +17,7 @@ const logger : ValidLogger = Logging.getLogger('lpic')
 import { Cfgr                     } from "./configurator.js"
 import { BaseConfig               } from "./configBase.js"
 import { TraceConfig as Config    } from "./configTrace.js"
+import { Builders                 } from "./builders.js"
 import { Grammars                 } from "./grammars.js"
 import { ScopeActions             } from "./scopeActions.js"
 import { Structures               } from "./structures.js"
@@ -31,6 +32,11 @@ async function runTool() {
 
   if (config.showActions) {
     ScopeActions.theScopeActions.printActions()
+    process.exit(0)
+  }
+
+  if (config.showBuilders) {
+    Builders.theBuilders.printBuilders()
     process.exit(0)
   }
 

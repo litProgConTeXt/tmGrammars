@@ -190,9 +190,13 @@ export class FileLogger extends ConsoleLogger {
    */
   log(logLevel: number, theArguments: object) {
     var logJson : any = { }
-    for (const [key, value] of Object.entries(theArguments)) {
-      if (key === "0") logJson["msg"] = value
-      else             logJson[key]   = value
+    if (theArguments instanceof Array) {
+      for (const [key, value] of Object.entries(theArguments)) {
+        if (key === "0") logJson["msg"] = value
+        else             logJson[key]   = value
+      }
+    } else {
+      logJson["msg"] = theArguments
     }
     logJson["level"]    = logLevel
     logJson["name"]     = this.logName

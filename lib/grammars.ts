@@ -307,6 +307,7 @@ export class Grammars {
    * grammar has been loaded.
    */
   async loadGrammarFrom(aGrammarPath : string) {
+    console.log(`>>> loading grammar from ${aGrammarPath}`)
     var aGrammar : vsctmTypes.IRawGrammar
     
     if (aGrammarPath.endsWith('.json')) {
@@ -329,15 +330,20 @@ export class Grammars {
       return
     }
     if (aGrammar.scopeName) {
+      console.log(`>>> scope name ${aGrammar.scopeName}`)
       const baseScope = aGrammar['scopeName']
       if (this.originalScope2grammar.has(baseScope)) {
         logger.warn(`WARNING: you are over-writing an existing ${baseScope} grammar`)
       }
       this.originalScope2grammar.set(baseScope, aGrammar)
+    } else {
+      console.log(">>> NO scope name")
     }
-    for (const [aScope, aGrammar] of Object.entries(this.originalScope2grammar)) {
+    console.log(this.originalScope2grammar)
+    for (const [aScope, aGrammar] of this.originalScope2grammar.entries()) {
       this.scope2grammar.set(aScope, deepcopy(aGrammar))
     }
+    console.log(this.scope2grammar)
   }
 
   // Get all known scopes defined by the loaded grammars.
@@ -396,7 +402,7 @@ export class Grammars {
 
   // Print all loaded grammars
   printAllGrammars() {
-    for (const aBaseScope of Object.keys(this.scope2grammar).sort()) {
+    for (const aBaseScope of Array.from(this.scope2grammar.keys()).sort()) {
       this.printGrammar(aBaseScope)
     }
     console.log("-------------------------------------------------------------")
