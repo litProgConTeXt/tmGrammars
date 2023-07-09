@@ -22,8 +22,10 @@ const logger : ValidLogger = Logging.getLogger('lpic')
 // The **global** collection of all registered Structures
 export class Structures {
 
+  static theStructures : Structures = new Structures()
+
   // The (internal) mapping of structure names to structure objects
-  static structs : Map<string, any> = new Map()
+  structs : Map<string, any> = new Map()
 
   // Does nothing... Not used
   constructor() {}
@@ -39,11 +41,11 @@ export class Structures {
    * of
    * Map.get](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get#return_value)
    */
-  static newStructure(aStructureKey : string, aStructureValue : any) {
-    if (!Structures.structs.has(aStructureKey)) {
-      Structures.structs.set(aStructureKey, aStructureValue)
+  newStructure(aStructureKey : string, aStructureValue : any) {
+    if (!this.structs.has(aStructureKey)) {
+      this.structs.set(aStructureKey, aStructureValue)
     }
-    return Structures.structs.get(aStructureKey)
+    return this.structs.get(aStructureKey)
   }
 
   /**
@@ -55,13 +57,13 @@ export class Structures {
    * of
    * Map.get](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get#return_value)
    */
-  static getStructure(aStructureKey : string) {
-    return Structures.structs.get(aStructureKey)
+  getStructure(aStructureKey : string) {
+    return this.structs.get(aStructureKey)
   }
 
   // Return the array of the names of the currently known structures.
-  static getStructureNames() {
-    return Array.from(Structures.structs.keys()).sort()
+  getStructureNames() {
+    return Array.from(this.structs.keys()).sort()
   }
 
   /**
@@ -70,19 +72,19 @@ export class Structures {
    *
    * @param aStructureName - the name of the structure to log
    */
-  static logStructure(aStructureName : string){
-    if (!Structures.structs.has(aStructureName)) return
+  logStructure(aStructureName : string){
+    if (!this.structs.has(aStructureName)) return
     logger.debug("--structure--------------------------------------------------")
     logger.debug(aStructureName)
     logger.debug("-------------------------")
-    logger.debug(yaml.stringify(Structures.structs.get(aStructureName)))
+    logger.debug(yaml.stringify(this.structs.get(aStructureName)))
   }
 
   // Stringify all known structures (using YAML) and log the result at the
   // `debug` level using the logger for this tool.
-  static logAllStructures() {
-    for (const aStructureName of Object.keys(Structures.structs).sort()) {
-      Structures.logStructure(aStructureName)
+  logAllStructures() {
+    for (const aStructureName of Object.keys(this.structs).sort()) {
+      this.logStructure(aStructureName)
     }
   }
 
@@ -91,19 +93,19 @@ export class Structures {
    *
    * @param aStructureName - the name of the structure to send to the console
    */
-  static printStructure(aStructureName: string){
-    if (!Structures.structs.has(aStructureName)) return
+  printStructure(aStructureName: string){
+    if (!this.structs.has(aStructureName)) return
     console.log("--structure--------------------------------------------------")
     console.log(aStructureName)
     console.log("-------------------------")
-    console.log(yaml.stringify(Structures.structs.get(aStructureName)))
+    console.log(yaml.stringify(this.structs.get(aStructureName)))
   }
 
   // Stringify all known structures (using YAML) and send the result to the
   // console.
-  static printAllStructures() {
-    for (const aStructureName of Object.keys(Structures.structs).sort()) {
-      Structures.printStructure(aStructureName)
+  printAllStructures() {
+    for (const aStructureName of Object.keys(this.structs).sort()) {
+      this.printStructure(aStructureName)
     }
   }
 }

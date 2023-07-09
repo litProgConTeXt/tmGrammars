@@ -11,13 +11,13 @@ import * as fsp  from "fs/promises"
 import * as path from "path"
 import * as yaml from "yaml"
 
-import { Cfgr                 } from "./configurator.js"
-import { BaseConfig as Config } from "./configBase.js"
-import { Document             } from "./documents.js"
-import { Grammars             } from "./grammars.js"
-import { ScopeActions         } from "./scopeActions.js"
-import { Structures           } from "./structures.js"
-import { Logging, ValidLogger } from "./logging.js"
+import { Cfgr                    } from "./configurator.js"
+import { BaseConfig as Config    } from "./configBase.js"
+import { Document, DocumentCache } from "./documents.js"
+import { Grammars                } from "./grammars.js"
+import { ScopeActions            } from "./scopeActions.js"
+import { Structures              } from "./structures.js"
+import { Logging, ValidLogger    } from "./logging.js"
 
 const logger : ValidLogger = Logging.getLogger('lpic')
 
@@ -87,16 +87,28 @@ class Builder {
   }
 }
 
+export type RegisterBuildersFunction = (
+  config        : Config,
+  builders      : Builders,
+  documentCache : DocumentCache,
+  grammars      : Grammars,
+  scopeActions  : ScopeActions,
+  structures    : Structures,
+  logger        : ValidLogger
+) => void
+
 /**
  * The global collection of known builders.
  */
 export class Builders {
 
+  static theBuilders : Builders = new Builders()
+
   // The dictionary of builders indexed by a builder name
-  static builders : Map<string, Builder[]> = new Map()
+  builders : Map<string, Builder[]> = new Map()
 
   // The set of already loaded builders
-  static loadedBuilderDirs : Set<string> = new Set()
+  loadedBuilderDirs : Set<string> = new Set()
 
   // Does nothing... not used
   constructor() {}
@@ -109,16 +121,16 @@ export class Builders {
    *                      builder
    * @param aFunc       - the function which implements this builder
    */
-  static addBuilder(
+  addBuilder(
     builderName : string,
     funcPath    : string,
     aFunc       : BuilderFunction
   ) {
-    const builders = Builders.builders
+    const builders = this.builders
     if (!builders.has(builderName)) {
       builders.set(builderName, [])
     }
-    const someBuilders = Builders.builders.get(builderName)
+    const someBuilders = this.builders.get(builderName)
     if (someBuilders) {
       someBuilders.push(
         new Builder(builderName, funcPath, aFunc)
@@ -131,8 +143,8 @@ export class Builders {
    * 
    * @param scopeStr - the scope
    */
-  static getBuilder(scopeStr : string) : Builder[] | undefined {
-    return Builders.builders.get(scopeStr)
+  getBuilder(scopeStr : string) : Builder[] | undefined {
+    return this.builders.get(scopeStr)
   }
   
   /**
@@ -140,8 +152,8 @@ export class Builders {
    * 
    * @param scopeStr - a scope
    */
-  static hasBuilder(scopeStr : string) : Builder[] | undefined {
-    return Builders.getBuilder(scopeStr)
+  hasBuilder(scopeStr : string) : Builder[] | undefined {
+    return this.getBuilder(scopeStr)
   }
   
   /**
@@ -156,11 +168,11 @@ export class Builders {
    * builders which are registered with the Builders module using the
    * `registerBuilders` method.
    */
-  static async loadBuildersFrom(aDir : string, config : Config) {
+  async loadBuildersFrom(aDir : string, config : Config) {
     logger.debug(`loading builders from ${aDir}`)
     aDir = Cfgr.normalizePath(aDir)
-     if (Builders.loadedBuilderDirs.has(aDir)) return
-    Builders.loadedBuilderDirs.add(aDir)
+     if (this.loadedBuilderDirs.has(aDir)) return
+    this.loadedBuilderDirs.add(aDir)
     const openedDir = await fsp.opendir(aDir)
     const builders2Load = []
     for await (const dirEnt of openedDir) {
@@ -170,7 +182,15 @@ export class Builders {
         logger.debug(`  loading ${aPath}`)
         const aModule = await import(aPath)
         logger.debug(`  loaded ${aPath}`)
-        aModule.registerBuilders(config)
+        aModule.registerBuilders(
+          config,
+          Builders.theBuilders,
+          DocumentCache.theDocumentCache,
+          Grammars.theGrammars,
+          ScopeActions.theScopeActions,
+          Structures.theStructures,
+          logger
+        )
         logger.debug(`  registered ${aPath}`)          
       }())
     }
@@ -196,7 +216,7 @@ export class Builders {
    * registered with the Structures module. It may also have written its
    * extracted data to one or more files in the file-system.
    */
-  static async runBuildersStartingWith(
+  async runBuildersStartingWith(
     scopeProbe  : string,
     theScope    : string,
     someTokens  : string[],
@@ -205,7 +225,7 @@ export class Builders {
     runParallel : boolean
   ) {
     const actionFuncPromises = []
-    for (const [aScope, someActions] of ScopeActions.actions.entries()) {
+    for (const [aScope, someActions] of ScopeActions.theScopeActions.actions.entries()) {
       if (aScope.startsWith(scopeProbe)) {
         for (const anAction of someActions) {
           actionFuncPromises.push(async function(){
@@ -224,27 +244,27 @@ export class Builders {
   }
   
   // Get all scopes with builders
-  static getScopesWithBuilders() {
+  getScopesWithBuilders() {
     const scopesWithBuilders : Map<string, Builder[]> = new Map()
-    for (const [aScope, someBuilders] of Builders.builders.entries()){
+    for (const [aScope, someBuilders] of this.builders.entries()){
       scopesWithBuilders.set(aScope, someBuilders)
     }
     return scopesWithBuilders
   }  
   
   // Log all loaded builders at the `debug` level using the current logger.
-  static logBuilders() {
+  logBuilders() {
     logger.debug("--builders----------------------------------------------------")
-    for (const [aBaseScope, aBuilder] of Builders.builders.entries()) {
+    for (const [aBaseScope, aBuilder] of this.builders.entries()) {
       logger.debug(aBuilder)
     }
     logger.debug("--------------------------------------------------------------")
   }
   
   // Print all loaded builders to the console.log
-  static printBuilders() {
+  printBuilders() {
     console.log("--builders----------------------------------------------------")
-    for (const [aBaseScope, aBuilder] of Builders.builders.entries()) {
+    for (const [aBaseScope, aBuilder] of this.builders.entries()) {
       console.log(aBuilder)
     }
     console.log("--------------------------------------------------------------")

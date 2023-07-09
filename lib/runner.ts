@@ -51,7 +51,7 @@ export async function setupTMGTool(
     logger.debug("\n--loading actions----------------------------------------")
     await Promise.all(config.loadActions.map( async (anActionsPath : string) => {
       logger.debug(`starting to load actions from [${anActionsPath}]`)
-      await ScopeActions.loadActionsFrom(anActionsPath, config)
+      await ScopeActions.theScopeActions.loadActionsFrom(anActionsPath, config)
       logger.debug(`finished loading actions from [${anActionsPath}]`)
     }))
     logger.debug("---------------------------------------------------------")
@@ -177,15 +177,15 @@ export async function runTMGTool(config : BaseConfig ) {
     process.exit(0)
   }
 
-  await ScopeActions.runActionsStartingWith(
+  await ScopeActions.theScopeActions.runActionsStartingWith(
     'initialize', 'lpic', [], 0, undefined, config.parallel
   )
 
-  await ScopeActions.runActionsStartingWith(
+  await ScopeActions.theScopeActions.runActionsStartingWith(
     'run', 'lpic', config.initialFiles, 0, undefined, config.parallel
   )
 
-  await ScopeActions.runActionsStartingWith(
+  await ScopeActions.theScopeActions.runActionsStartingWith(
     'finalize', 'lpic', [], 0, undefined, config.parallel
   )
 }

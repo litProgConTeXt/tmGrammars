@@ -30,18 +30,18 @@ async function runTool() {
   //loadRunner(config) 
 
   if (config.showActions) {
-    ScopeActions.printActions()
+    ScopeActions.theScopeActions.printActions()
     process.exit(0)
   }
 
   if (config.showAllGrammars) {
-    Grammars.printAllGrammars()
+    Grammars.theGrammars.printAllGrammars()
     process.exit(0)
   }
 
   if (0 < config.showGrammars.length) {
     for (const aBaseScope of config.showGrammars) {
-      Grammars.printGrammar(aBaseScope)
+      Grammars.theGrammars.printGrammar(aBaseScope)
     }
     process.exit(0)
   }

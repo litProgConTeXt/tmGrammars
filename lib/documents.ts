@@ -62,8 +62,10 @@ export class Document {
 // A cache of documents
 export class DocumentCache {
 
+  static theDocumentCache : DocumentCache = new DocumentCache()
+
   // A mapping of documents names to cached <Documents.Document>
-  static documents : Map<string, Document> = new Map()
+  documents : Map<string, Document> = new Map()
 
   // Does nothing... do not use
   constructor () {}
@@ -72,8 +74,8 @@ export class DocumentCache {
    * @param aPath - the name of the document to find in the cache
    * @returns true if the given path exists in the document cache
    */
-  static hasDocument(aPath: string) {
-    return DocumentCache.documents.has(aPath)
+  hasDocument(aPath: string) {
+    return this.documents.has(aPath)
   }
 
   /** 
@@ -81,8 +83,8 @@ export class DocumentCache {
    * @returns the Document associated with the document name OR undefined if
    * there is no document with the given name
    */
-  static getDocument(aPath: string) {
-    return DocumentCache.documents.get(aPath)
+  getDocument(aPath: string) {
+    return this.documents.get(aPath)
   }
 
   /**
@@ -92,10 +94,10 @@ export class DocumentCache {
    * @returns A Promise which when fulfilled, returns the loaded Document or
    * undefined if the document could not be loaded.
    */
-  static async loadFromFile(aPath:string) {
+  async loadFromFile(aPath:string) {
     const doc = new Document()
     await doc.loadFromFile(aPath)
-    DocumentCache.documents.set(aPath, doc)
+    this.documents.set(aPath, doc)
     return doc
   }
 
@@ -106,10 +108,10 @@ export class DocumentCache {
    * @param docStr - the document as a simple string
    * @returns the document
    */
-  static loadFromStr(docName:string, docStr:string) {
+  loadFromStr(docName:string, docStr:string) {
     const doc = new Document()
     doc.refreshFromStr(docName, docStr)
-    DocumentCache.documents.set(docName, doc)
+    this.documents.set(docName, doc)
     return doc
   }
 

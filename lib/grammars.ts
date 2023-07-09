@@ -41,37 +41,36 @@ interface _vscodeOnigurma {
 // A Global collection of loaded TextMate Grammars
 export class Grammars {
 
-  // Does nothing... do not use
-  constructor () {}
+  static theGrammars : Grammars = new Grammars()
 
   // the scope -> grammar mapping
-  static scope2grammar : Map<string, vsctmTypes.IRawGrammar> = new Map()
+  scope2grammar : Map<string, vsctmTypes.IRawGrammar> = new Map()
 
   // the orginal scope -> grammar mapping
-  static originalScope2grammar : Map<string, vsctmTypes.IRawGrammar> = new Map()
+  originalScope2grammar : Map<string, vsctmTypes.IRawGrammar> = new Map()
 
   // the set of loadedGrammars
-  static loadedGrammars : Set<string> = new Set()
+  loadedGrammars : Set<string> = new Set()
 
   // internal array buffer containing the oniguruma library binaries
-  static _wasmBin : ArrayBuffer
+  _wasmBin : ArrayBuffer | undefined
 
   // internal reference to the oniguruma library interface
-  static _vscodeOnigurumaLib : any
+  _vscodeOnigurumaLib : any
 
   // The registry of vscode-textmate grammars
-  static registry : vsctmTypes.Registry
+  registry : vsctmTypes.Registry | undefined
 
   // The initialization of the vscode-textmate grammar registery
   //
   // @returns A Promise which when fulfilled means that the Grammars module has
   // been fully initialized and is ready for use.
-  static async _initGrammarsClass() {
+  async consturctor() {
     
     try {
       // try to find onig.wasm assuming we are in the development setup
       console.log(path.dirname(__filename))
-      Grammars._wasmBin = await fsp.readFile(
+      this._wasmBin = await fsp.readFile(
         path.join(
             path.dirname(__filename),
           '../../node_modules/vscode-oniguruma/release/onig.wasm'
@@ -81,7 +80,7 @@ export class Grammars {
       try {
         // try to find onig.wasm assuming we are in the npm installed setup
         logger.trace("Trying to load onig.wasm from npm")
-        Grammars._wasmBin = await fsp.readFile(
+        this._wasmBin = await fsp.readFile(
           path.join(
             path.dirname(__filename),
             '../../vscode-oniguruma/release/onig.wasm'
@@ -93,7 +92,7 @@ export class Grammars {
       }
     }
           
-    Grammars._vscodeOnigurumaLib = oniguruma.loadWASM(Grammars._wasmBin)
+    this._vscodeOnigurumaLib = oniguruma.loadWASM(this._wasmBin)
     .then(function() {
       return {
         createOnigScanner(patterns : string[]): vsctmTypes.OnigScanner {
@@ -106,13 +105,14 @@ export class Grammars {
     });
 
     // Create a registry that can create a grammar from a scope name.
-    Grammars.registry = new vsctm.Registry({
-      onigLib: Grammars._vscodeOnigurumaLib,
+    const s2g = this.scope2grammar
+    this.registry = new vsctm.Registry({
+      onigLib: this._vscodeOnigurumaLib,
       loadGrammar: function (scopeName : string ) : Promise<vsctmTypes.IRawGrammar | null | undefined> {
         return new Promise(
           () => {
-            if (Grammars.scope2grammar.has(scopeName) ) {
-              return Grammars.scope2grammar.get(scopeName)
+            if (s2g.has(scopeName) ) {
+              return s2g.get(scopeName)
             }
             logger.warn(`Unknown scope name: ${scopeName}`);
             return null;
@@ -129,9 +129,9 @@ export class Grammars {
    * @param theFirstLine - the first line of the document used by the grammar to
    * deterimine if it understands this type of document.
    */
-  static chooseBaseScope(aDocPath : string, aFirstLine : string) {
+  chooseBaseScope(aDocPath : string, aFirstLine : string) {
     // start by checking first line matches...
-    for (const [aBaseScope, aGrammar] of Object.entries(Grammars.scope2grammar)) {
+    for (const [aBaseScope, aGrammar] of Object.entries(this.scope2grammar)) {
       if (aGrammar['firstLineMatch']) {
         logger.trace(`Checking firstLineMatch for ${aBaseScope}`)
         if (aFirstLine.match(aGrammar['firstLineMatch'])) return aBaseScope
@@ -139,7 +139,7 @@ export class Grammars {
     }
     // since none of the first line matches found a match...
     // ... move on to checking the file extension
-    for (const [aBaseScope, aGrammar] of Object.entries(Grammars.scope2grammar)) {
+    for (const [aBaseScope, aGrammar] of Object.entries(this.scope2grammar)) {
       if (aGrammar['fileTypes']) {
         for (const [anIndex, aFileExt] of aGrammar['fileTypes'].entries()) {
           logger.trace(`Checking ${aBaseScope} file type (${aFileExt}) against [${aDocPath}]`)
@@ -166,7 +166,7 @@ export class Grammars {
    * while parsing. The triggered actions normally store any data extracted from
    * the document in various named Structures in the Structures module.
    */
-  static async traceParseOf(aDocPath : string, config : ITraceConfig | undefined) {
+  async traceParseOf(aDocPath : string, config : ITraceConfig | undefined) {
     var traceObj
     var traceOutput
     if (config && ('traceLinesInclude' in config)) {
@@ -206,14 +206,16 @@ export class Grammars {
 
     if (!config) config = addITraceConfig({})
     
-    const aDoc = await DocumentCache.loadFromFile(aDocPath)
-    const aBaseScope = Grammars.chooseBaseScope(aDoc.filePath, aDoc.docLines[0])
+    const aDoc = await DocumentCache.theDocumentCache.loadFromFile(aDocPath)
+    const aBaseScope = this.chooseBaseScope(aDoc.filePath, aDoc.docLines[0])
     if (!aBaseScope) {
       logger.warn("WARNING: Could not find the base scope for the document")
       logger.warn(`  ${aDoc.docName}`)
       return
     }
-    const aGrammar = await Grammars.registry.loadGrammar(aBaseScope)
+    if (!this.registry) return
+
+    const aGrammar = await this.registry.loadGrammar(aBaseScope)
     if (!aGrammar) {
       logger.warn("WARNING: Could not load the requested grammar")
       logger.warn(`  ${aBaseScope}`)
@@ -222,8 +224,8 @@ export class Grammars {
     logger.trace("\n--TRACING--------------------------------------------------------")
     logger.trace(`${aDocPath} (using ${aBaseScope})`)
     logger.trace("-----------------------------------------------------------------")
-    const scopesWithActions = ScopeActions.getScopesWithActions()
-    const structureNames    = Structures.getStructureNames()
+    const scopesWithActions = ScopeActions.theScopeActions.getScopesWithActions()
+    const structureNames    = Structures.theStructures.getStructureNames()
     let ruleStack           = vsctm.INITIAL
     var   lineNum           = -1
     for (const aLine of aDoc.docLines) {
@@ -285,7 +287,7 @@ export class Grammars {
                 config.traceStructuresExclude,
                 aStructureName
               )) {
-                  Structures.logStructure(aStructureName)
+                  Structures.theStructures.logStructure(aStructureName)
                 }
               }
             logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -304,21 +306,21 @@ export class Grammars {
    * @returns A Promise which when fulfilled means that the indicated text-mate
    * grammar has been loaded.
    */
-  static async loadGrammarFrom(aGrammarPath : string) {
+  async loadGrammarFrom(aGrammarPath : string) {
     var aGrammar : vsctmTypes.IRawGrammar
     
     if (aGrammarPath.endsWith('.json')) {
-      if (Grammars.loadedGrammars.has(aGrammarPath)) {
+      if (this.loadedGrammars.has(aGrammarPath)) {
         logger.trace(`Warning you have already loaded ${aGrammarPath}`)
         return
       }
       aGrammarPath = Cfgr.normalizePath(aGrammarPath)
-      if (Grammars.loadedGrammars.has(aGrammarPath)) {
+      if (this.loadedGrammars.has(aGrammarPath)) {
         logger.trace(`Warning you have already loaded ${aGrammarPath}`)
         return
       }
       
-      Grammars.loadedGrammars.add(aGrammarPath)
+      this.loadedGrammars.add(aGrammarPath)
       logger.debug(`loading grammar from ${aGrammarPath}`)
       const aGrammarStr = await fsp.readFile(aGrammarPath, "utf8")
       aGrammar = JSON.parse(aGrammarStr)
@@ -328,18 +330,18 @@ export class Grammars {
     }
     if (aGrammar.scopeName) {
       const baseScope = aGrammar['scopeName']
-      if (Grammars.originalScope2grammar.has(baseScope)) {
+      if (this.originalScope2grammar.has(baseScope)) {
         logger.warn(`WARNING: you are over-writing an existing ${baseScope} grammar`)
       }
-      Grammars.originalScope2grammar.set(baseScope, aGrammar)
+      this.originalScope2grammar.set(baseScope, aGrammar)
     }
-    for (const [aScope, aGrammar] of Object.entries(Grammars.originalScope2grammar)) {
-      Grammars.scope2grammar.set(aScope, deepcopy(aGrammar))
+    for (const [aScope, aGrammar] of Object.entries(this.originalScope2grammar)) {
+      this.scope2grammar.set(aScope, deepcopy(aGrammar))
     }
   }
 
   // Get all known scopes defined by the loaded grammars.
-  static getKnownScopes() {
+  getKnownScopes() {
     const knownScopes : Set<string> = new Set()
 
     function addScopesFromPatterns(somePatterns : vsctmTRG.IRawRule[]) {
@@ -369,7 +371,7 @@ export class Grammars {
       if (aRule.beginCaptures) addScopesFromCaptures(aRule.beginCaptures)
       if (aRule.endCaptures)   addScopesFromCaptures(aRule.endCaptures)
     }
-    for (const [aScope, aGrammar] of Grammars.scope2grammar.entries()){
+    for (const [aScope, aGrammar] of this.scope2grammar.entries()){
       knownScopes.add(aScope)
       addScopesFromPatterns(aGrammar.patterns)
       addScopesFromRepository(aGrammar.repository)
@@ -384,21 +386,19 @@ export class Grammars {
    * 
    * @param aBaseScope - the base scope of the grammar to be printed
    */
-  static printGrammar(aBaseScope : string) {
-    if (!Grammars.scope2grammar.has(aBaseScope)) return
+  printGrammar(aBaseScope : string) {
+    if (!this.scope2grammar.has(aBaseScope)) return
     console.log("--grammar----------------------------------------------------")
     console.log(aBaseScope)
     console.log("---------------")
-    console.log(yaml.stringify(Grammars.scope2grammar.get(aBaseScope)))
+    console.log(yaml.stringify(this.scope2grammar.get(aBaseScope)))
   }
 
   // Print all loaded grammars
-  static printAllGrammars() {
-    for (const aBaseScope of Object.keys(Grammars.scope2grammar).sort()) {
-      Grammars.printGrammar(aBaseScope)
+  printAllGrammars() {
+    for (const aBaseScope of Object.keys(this.scope2grammar).sort()) {
+      this.printGrammar(aBaseScope)
     }
     console.log("-------------------------------------------------------------")
   }
 }
-
-Grammars._initGrammarsClass().catch((err)=>console.log(err)).finally()

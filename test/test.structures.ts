@@ -24,18 +24,18 @@ import { Structures } from '../lib/structures.js'
 describe('Structures', function() {
   describe('#{get/new}Structure', function() {
     it('should behave as expected...', function() {
-      var anObj = Structures.getStructure("test1")
+      var anObj = Structures.theStructures.getStructure("test1")
       expect(anObj).to.be.undefined
       var test2 = [ "this", "is", "a", "test"]
-      anObj = Structures.newStructure("test2", test2)
+      anObj = Structures.theStructures.newStructure("test2", test2)
       expect(anObj).to.not.be.undefined
       expect(anObj).to.equal(test2)
 
-      anObj = Structures.getStructure("test2")
+      anObj = Structures.theStructures.getStructure("test2")
       expect(anObj).to.not.be.undefined
       expect(anObj).to.equal(test2)
 
-      var someNames = Structures.getStructureNames()
+      var someNames = Structures.theStructures.getStructureNames()
       expect(someNames).is.instanceof(Array)
       expect(someNames.length).is.equal(1)
       expect(someNames[0]).is.equal("test2")
