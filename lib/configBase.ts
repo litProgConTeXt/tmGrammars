@@ -21,11 +21,12 @@ import { Cfgr, appendStrArg } from "./configurator.js"
 import { ConsoleLogger }      from "./logging.js"
 
 // The base configuration class
-@Cfgr.klass()
-export class BaseConfig {
+export class BaseConfig extends Cfgr {
 
   // Does nothing... do not use
-  constructor() {}
+  constructor() {
+    super()
+  }
 
   /**
    *  An array of configuration paths which will be loaded in order.
@@ -33,7 +34,7 @@ export class BaseConfig {
    *  - **configPath:** configPaths
    *  - **cli:**        -c, --config
    */
-  @Cfgr.cliOption(
+  @this.cliOption(
     'configPaths',
     '-c, --config <path>',
     `Load one or more configuration files (YAML|TOML|JSON)`,

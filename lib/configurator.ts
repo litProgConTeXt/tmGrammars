@@ -161,27 +161,8 @@ export class Cfgr {
   // deal with file-system path normalization
   //
 
-  /**
-   * pathPrefix is a string which if not empty is used by the <normalizePath>
-   * method as the (default) pathPrefix.
-   * 
-   * @category Path Normalization
-   */
-  static pathPrefix : string = ""
-
-  /**
-   * update the pathPrefix
-   *
-   * @param aConfigInstance - get the default pathPrefix from this object if it
-   *                          has the `pathPrefix` property.
-   * @category Path Normalization
-  */
-  static updatePathPrefix(aConfigInstance : any) {
-    if (('pathPrefix' in aConfigInstance) && 
-        (0 < aConfigInstance['pathPrefix'].length)) {
-      Cfgr.pathPrefix = aConfigInstance['pathPrefix']
-    }
-  }
+  // TODO fix this!!!!
+  pathPrefix : string = ""
 
   /**
    * normalize the given path
@@ -195,9 +176,10 @@ export class Cfgr {
    * 
    * @category Path Normalization
    */
-  static normalizePath(aPath : string) {
+  normalizePath(aPath : string) {
     var pathPrefix = process.cwd()
-    if (0 < Cfgr.pathPrefix.length) pathPrefix = Cfgr.pathPrefix
+    if (this.pathPrefix && (0 < this.pathPrefix.length))
+      pathPrefix = this.pathPrefix
   
     if (aPath.startsWith('~')) {
       // load from a home directory
@@ -240,17 +222,17 @@ export class Cfgr {
    * 
    * @category Typed Classes
    */
-  static configClasses : Array<Function> = []
+  configClasses : Array<Function> = []
   
   /**
    * List the known typed configuration classes.
    * 
    * @category Typed Classes
    */
-  static listConfigClasses() {
+  listConfigClasses() {
     const classNames : Array<Function> = []
     //const classNames : Array<string> = []
-    Cfgr.configClasses.forEach(function(aKlass){
+    this.configClasses.forEach(function(aKlass){
       classNames.push(aKlass)
       //classNames.push(aKlass.name)
     })
@@ -262,9 +244,9 @@ export class Cfgr {
    * 
    * @category Typed Classes
    */
-  static klass (/*pathArray : Array<string>*/) {
+  klass (/*pathArray : Array<string>*/) {
     return function decorator(value : Function, context : ClassDecoratorContext) {
-      Cfgr.configClasses.push(value)
+      this.configClasses.push(value)
     }
   }
 
@@ -280,15 +262,15 @@ export class Cfgr {
    * 
    * @category Configuration Files
    */
-  static key2fieldMapping : Map<string, string> = new Map()
+  key2fieldMapping : Map<string, string> = new Map()
 
   /**
    * Stringify (using YAML) the key to field mapping.
    * 
    * @category Configuration Files
    */
-  static stringifyKey2field() {
-    return yaml.stringify(Cfgr.key2fieldMapping)
+  stringifyKey2field() {
+    return yaml.stringify(this.key2fieldMapping)
   }
 
   /**
@@ -309,9 +291,9 @@ export class Cfgr {
    *
    * @category Configuration Files
    */
-  static loadConfigFromDict(aConfigInstance : any, baseConfigPath : string, aConfigDict : any) {
+  loadConfigFromDict(aConfigInstance : any, baseConfigPath : string, aConfigDict : any) {
     logger.debug(`loadFromDict (1): ${baseConfigPath} ${typeof aConfigDict}`)
-    var aField = Cfgr.key2fieldMapping.get(baseConfigPath)
+    var aField = this.key2fieldMapping.get(baseConfigPath)
     if (aField) {
       logger.debug(`loadFromDict (2): ${aField} ${typeof aConfigInstance[aField]}`)
       if (typeof aConfigInstance[aField] === typeof aConfigDict) {
@@ -328,7 +310,7 @@ export class Cfgr {
       logger.debug(yaml.stringify(aConfigDict))
       logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
       Object.keys(aConfigDict).forEach(function(aKey: string | symbol){
-        Cfgr.loadConfigFromDict(
+        this.loadConfigFromDict(
           aConfigInstance,
           ((0 < baseConfigPath.length) ?
             baseConfigPath + '.' + String(aKey) :
@@ -338,7 +320,6 @@ export class Cfgr {
         )
       })
     }
-    Cfgr.updatePathPrefix(aConfigInstance)
   }
 
   /**
@@ -350,7 +331,7 @@ export class Cfgr {
    *
    * @category Configuration Files
    */
-  static async loadConfigFromFile(aConfigInstance : any, aConfigPath : string) {
+  async loadConfigFromFile(aConfigInstance : any, aConfigPath : string) {
     logger.debug(`LOADING from ${aConfigPath}`)
     var configText : string = ""
     logger.debug(`Trying to load configuration from [${aConfigPath}]`)
@@ -373,7 +354,7 @@ export class Cfgr {
       }
     }
     if (fileConfig) {
-      Cfgr.loadConfigFromDict(aConfigInstance, "", fileConfig)
+      this.loadConfigFromDict(aConfigInstance, "", fileConfig)
     }
     logger.debug("---------------")
     logger.debug(yaml.stringify(aConfigInstance))
@@ -394,7 +375,7 @@ export class Cfgr {
    * @category Configuration Files
    */
 
-  static async loadConfigFiles(aConfigInstance : any , configPaths : Array<string>) {
+  async loadConfigFiles(aConfigInstance : any , configPaths : Array<string>) {
     var loadedPaths : Array<string> = []
     if ( ! ('configPaths' in aConfigInstance) ) {
       aConfigInstance['configPaths'] = []
@@ -411,8 +392,8 @@ export class Cfgr {
         morePaths = true
         loadedPaths.push(aConfigPath)
         logger.debug(`>>>> ${aConfigPath} >>>>`)
-        await Cfgr.loadConfigFromFile(
-          aConfigInstance, Cfgr.normalizePath(aConfigPath)
+        await this.loadConfigFromFile(
+          aConfigInstance, this.normalizePath(aConfigPath)
         )
         logger.debug(`<<<< ${aConfigPath} <<<<`)
         break
@@ -428,8 +409,8 @@ export class Cfgr {
    *
    * @category Configuration Files
    */
-  static addConfigPath( aConfigPath : string, contextName : string | symbol) {
-    Cfgr.key2fieldMapping.set(aConfigPath, String(contextName))
+  addConfigPath( aConfigPath : string, contextName : string | symbol) {
+    this.key2fieldMapping.set(aConfigPath, String(contextName))
   }
 
   /**
@@ -440,9 +421,9 @@ export class Cfgr {
    *
    * @category Configuration Files
    */
-  static key (aConfigPath : string) {
+  key (aConfigPath : string) {
     return function decorator (value : undefined , context : ClassFieldDecoratorContext) {
-      Cfgr.addConfigPath(aConfigPath, context.name)
+      this.addConfigPath(aConfigPath, context.name)
     }
   }
   
@@ -456,7 +437,7 @@ export class Cfgr {
    * 
    * @category Configuration Defaults
    */
-  static defaultStringsMapping : Map<string| symbol, string> = new Map()
+  defaultStringsMapping : Map<string| symbol, string> = new Map()
 
   /**
    * Walk through all known defaults and save their values into the
@@ -474,8 +455,8 @@ export class Cfgr {
    *
    * @category Configuration Defaults
    */
-  static updateDefaults(aConfigInstance : any, aMapping : Map<string, string>) {
-    Cfgr.defaultStringsMapping.forEach(function(aDefaultStr : string, aKey : SString){
+  updateDefaults(aConfigInstance : any, aMapping : Map<string, string>) {
+    this.defaultStringsMapping.forEach(function(aDefaultStr : string, aKey : SString){
       if (aKey in aConfigInstance) {
         var aRegExp = /\${([^\}]+)}/g
         // The following is an evil bodge!
@@ -499,7 +480,6 @@ export class Cfgr {
         }
       }
     })
-    Cfgr.updatePathPrefix(aConfigInstance)
   }
 
   /**
@@ -510,9 +490,9 @@ export class Cfgr {
    *
    * @category Configuration Defaults
    */
-  static defaultStr(aDefaultStr : string) {
+  defaultStr(aDefaultStr : string) {
     return function decorator (value: undefined, context : ClassFieldDecoratorContext) {
-      Cfgr.defaultStringsMapping.set(context.name, aDefaultStr)
+      this.defaultStringsMapping.set(context.name, aDefaultStr)
     }
   }
 
@@ -527,7 +507,7 @@ export class Cfgr {
    * 
    * @category Command Line Options
    */
-  static cliOptions : Array<CommanderOptions> = []
+  cliOptions : Array<CommanderOptions> = []
 
   /**
    * The mapping of cli option keys (usually the long option without the `--) to
@@ -535,15 +515,15 @@ export class Cfgr {
    * 
    * @category Command Line Options
    */
-  static cliOpt2fieldMapping : Map<string, string | symbol> = new Map()
+  cliOpt2fieldMapping : Map<string, string | symbol> = new Map()
   
   /**
    * Stingify (via YAML) the currently known array of Commander cli options
    * 
    * @category Command Line Options
    */
-  static stringifyCliOptions() {
-    return yaml.stringify(Cfgr.cliOptions)
+  stringifyCliOptions() {
+    return yaml.stringify(this.cliOptions)
   }
 
   /**
@@ -559,11 +539,11 @@ export class Cfgr {
    *
    * @category Command Line Options
    */
-  static setupCommander(
+  setupCommander(
     cliArgs : Command, name : string, description : string, version : string
   ) {
     cliArgs.name(name).description(description).version(version)
-    Cfgr.cliOptions.forEach(function(aCmdOpt : CommanderOptions){
+    this.cliOptions.forEach(function(aCmdOpt : CommanderOptions){
       if (aCmdOpt.isArgument) {
         var anArgument : Argument = new Argument(aCmdOpt.flags, aCmdOpt.description)
         if (aCmdOpt.argParser) {anArgument.argParser(aCmdOpt.argParser) }
@@ -576,7 +556,7 @@ export class Cfgr {
         } else if (anOption.short) {
           cliOpt = anOption.short.replace('--','')
         }
-        Cfgr.cliOpt2fieldMapping.set(cliOpt, aCmdOpt.field)
+        this.cliOpt2fieldMapping.set(cliOpt, aCmdOpt.field)
         if (aCmdOpt.argParser) { 
           anOption.argParser(aCmdOpt.argParser)
         }
@@ -594,7 +574,7 @@ export class Cfgr {
    *
    * @category Command Line Options
    */
-  static updateConfigFromCli(aConfigInstance : any, cliArgs : Command) {
+  updateConfigFromCli(aConfigInstance : any, cliArgs : Command) {
     if ((0 < cliArgs.args.length) && aConfigInstance['initialFiles']) {
       cliArgs.args.forEach(function (anInitialFile) {
         aConfigInstance['initialFiles'].push(anInitialFile)
@@ -604,7 +584,7 @@ export class Cfgr {
     logger.debug(typeof cliOpts)
     Object.keys(cliOpts).forEach(function(aKey: string){
       var aValue = cliOpts[aKey]
-      var aField = Cfgr.cliOpt2fieldMapping.get(aKey)
+      var aField = this.cliOpt2fieldMapping.get(aKey)
       if (aField && (typeof aConfigInstance[aField] === typeof aValue)) {
         if (aValue instanceof Array) {
           var valueArray : Array<string> = aValue
@@ -614,7 +594,6 @@ export class Cfgr {
         }
       }
     })
-    Cfgr.updatePathPrefix(aConfigInstance)
   }
 
   /**
@@ -633,11 +612,11 @@ export class Cfgr {
    *
    * @category Command Line Options
    */
-  static parseCliOptions(aConfigInstance : any, name : string, description : string, version : string) {
+  parseCliOptions(aConfigInstance : any, name : string, description : string, version : string) {
     var cliArgs = new Command()
-    Cfgr.setupCommander(cliArgs, name, description, version)
+    this.setupCommander(cliArgs, name, description, version)
     cliArgs.parse(process.argv)
-    Cfgr.updateConfigFromCli(aConfigInstance, cliArgs)
+    this.updateConfigFromCli(aConfigInstance, cliArgs)
   }
 
   /**
@@ -652,15 +631,15 @@ export class Cfgr {
    *
    * @category Command Line Options
    */
-  static cliOption(
+  cliOption(
     aConfigPath : string,
     flags : string,
     description : string,
     anArgParser : ArgParserFunction | undefined
   )  {
     return function decoration(value : any, context : ClassFieldDecoratorContext) {
-      Cfgr.addConfigPath(aConfigPath, context.name)
-      Cfgr.cliOptions.push(new CommanderOptions(
+      this.addConfigPath(aConfigPath, context.name)
+      this.cliOptions.push(new CommanderOptions(
         aConfigPath, context.name, flags, description, anArgParser, false
       ))
     }
@@ -678,15 +657,15 @@ export class Cfgr {
    *
    * @category Command Line Options
    */
-  static cliArgument(
+  cliArgument(
     aConfigPath : string,
     flags : string,
     description : string,
     anArgParser : ArgParserFunction | undefined
   ) {
     return function decoration(value: any, context : ClassFieldDecoratorContext) {
-      Cfgr.addConfigPath(aConfigPath, context.name)
-      Cfgr.cliOptions.push(new CommanderOptions(
+      this.addConfigPath(aConfigPath, context.name)
+      this.cliOptions.push(new CommanderOptions(
         aConfigPath, context.name, flags, description, anArgParser, true
       ))
     }
