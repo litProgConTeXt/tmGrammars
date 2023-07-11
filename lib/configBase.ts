@@ -17,16 +17,16 @@
 
 import * as yaml from 'yaml'
 
-import { Cfgr, appendStrArg } from "./configurator.js"
-import { ConsoleLogger }      from "./logging.js"
+import { CfgrCollector, appendStrArg  } from "./cfgrCollector.ts"
+import { ConsoleLogger                } from "./logging.ts"
+
+const cfgr = new CfgrCollector()
 
 // The base configuration class
-export class BaseConfig extends Cfgr {
+export class BaseConfig {
 
   // Does nothing... do not use
-  constructor() {
-    super()
-  }
+  constructor() { }
 
   /**
    *  An array of configuration paths which will be loaded in order.
@@ -34,13 +34,13 @@ export class BaseConfig extends Cfgr {
    *  - **configPath:** configPaths
    *  - **cli:**        -c, --config
    */
-  @this.cliOption(
+  @cfgr.cliOption(
     'configPaths',
     '-c, --config <path>',
     `Load one or more configuration files (YAML|TOML|JSON)`,
     appendStrArg
   )
-  @Cfgr.defaultStr('${configBaseName}.yaml')
+  @cfgr.defaultStr('${configBaseName}.yaml')
   configPaths : Array<string> = []
 
   /**
@@ -49,7 +49,7 @@ export class BaseConfig extends Cfgr {
    * - **configPath:** logLevel
    * - **cli:** -ll, --logLevel
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'logLevel',
     '-ll, --logLevel <levelName>',
     'Set the logger log level',
@@ -63,7 +63,7 @@ export class BaseConfig extends Cfgr {
    * - **configPath:** load.actions
    * - **cli:** -la, -loadActions
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'load.actions',
     '-la, --loadActions <file>',
     'Load actions from a ES6 module',
@@ -77,7 +77,7 @@ export class BaseConfig extends Cfgr {
    * - **configPath:** load.builders
    * - **cli:** -lb, --loadBuilders
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'load.builders',
     '-lb, --loadBuilders <file>',
     'Load builders from an ES6 module',
@@ -91,7 +91,7 @@ export class BaseConfig extends Cfgr {
    * - **configPath:** load.grammars
    * - **cli:** -lg, --loadGrammars
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'load.grammars',
     '-lg, --loadGrammar <file>',
     'Load a grammar from the file system (JSON|PLIST)',
@@ -106,7 +106,7 @@ export class BaseConfig extends Cfgr {
    * - **configPath:** pathPrefix
    * - **cli:** --path
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'pathPrefix',
     '--path <aPath>',
     "A path prefix to prepend to all files loaded which don't start with a '~|@|$'",
@@ -121,7 +121,7 @@ export class BaseConfig extends Cfgr {
    * - **configPath:** savePath
    * - **cli:** -s, --save
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'savePath',
     '-s, --save <file>',
     'Save the current configuration into file (YAML|TOML|JSON)',
@@ -135,13 +135,13 @@ export class BaseConfig extends Cfgr {
    * - **configPath:** parallel
    * - **cli:** -p, --parallel
    */
-    @Cfgr.cliOption(
-      'parallel',
-      '-p, --parallel',
-      'Run all scoped actions in parallel',
-      undefined
-    )
-    parallel : boolean = false
+  @cfgr.cliOption(
+    'parallel',
+    '-p, --parallel',
+    'Run all scoped actions in parallel',
+    undefined
+  )
+  parallel : boolean = false
 
   /**
    * The files to be parsed by the LPiC tool
@@ -149,7 +149,7 @@ export class BaseConfig extends Cfgr {
    * - **configPath:** initialFiles
    * - **cli:** all remaining (non-optional) arguments
    */
-  @Cfgr.cliArgument(
+  @cfgr.cliArgument(
     'initialFiles',
     '[path]',
     'The documents to parse',

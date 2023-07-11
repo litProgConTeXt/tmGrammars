@@ -13,20 +13,21 @@
 
 import * as yaml from 'yaml'
 
-import { Cfgr, appendStrArg } from "./configurator.js"
-import { BaseConfig         } from "./configBase.js"
+import { CfgrCollector, appendStrArg  } from "./cfgrCollector.ts"
+
+const cfgr = new CfgrCollector()
 
 // The configuration used by the LPiC-tool to extract source code from a LPiC
 // document.
-@Cfgr.klass()
-export class BuildConfig extends BaseConfig {
+@cfgr.klass()
+export class BuildConfig {
 
   /**
    * The directory into which all extracted source code should be put.
    * 
    * - **configPath:** build.srcDir
    */
-  @Cfgr.key('build.srcDir')
+  @cfgr.key('build.srcDir')
   buildSrcDir : string = ""
 
   /**
@@ -34,7 +35,7 @@ export class BuildConfig extends BaseConfig {
    * 
    * - **configPath:** build.buildDir
    */
-  @Cfgr.key('build.buildDir')
+  @cfgr.key('build.buildDir')
   buildBuildDir : string = ""
 
   /** 
@@ -42,7 +43,7 @@ export class BuildConfig extends BaseConfig {
    * 
    * - **configPath:** build.projDescPath
    */
-  @Cfgr.key('build.projDescPath')
+  @cfgr.key('build.projDescPath')
   buildProjDescPath : string = ""
 
   /**
@@ -50,6 +51,6 @@ export class BuildConfig extends BaseConfig {
    * 
    * - **configPath:** ignoreConfig
    */
-  @Cfgr.key('ignoreConfig')
+  @cfgr.key('ignoreConfig')
   ignoreConfig : boolean = false
 }

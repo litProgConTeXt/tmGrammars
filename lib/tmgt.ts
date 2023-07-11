@@ -14,7 +14,7 @@ import * as yaml from "yaml"
 import { Logging, ValidLogger     } from "./logging.js"
 const logger : ValidLogger = Logging.getLogger('lpic')
 
-import { Cfgr                     } from "./configurator.js"
+import { Cfgr                     } from "./cfgrHelpers.js"
 import { BaseConfig               } from "./configBase.js"
 import { TraceConfig as Config    } from "./configTrace.js"
 import { Builders                 } from "./builders.js"

@@ -35,122 +35,17 @@ import   * as path                   from "path"
 import   toml                        from "@ltd/j-toml"
 import   * as yaml                   from 'yaml'
 
-import { Logging, ValidLogger       } from "./logging.js"
+import { 
+  SString,
+  CommanderOptions,
+  IConfig
+}                                      from "./cfgrCollector.ts"
+import { Logging, ValidLogger       } from "./logging.ts"
 
 const logger : ValidLogger = Logging.getLogger('lpic')
 
-/**
- * The prototype of all argParsers.
- *
- * An argParser is added to the cliOption or cliArgument decorators to specify
- * how command line arguments should be added to the configuration instance.
- * 
- * @param newArg - the value of the new option or argument
- * @param oldArg - the array of existing options or arguments collected for this type
- *                 of option or argument
- * 
- * @returns an (flat) Array of all new and old arguments.
- */
-type ArgParserFunction =
-  (newArg : string, oldArg : any | any[] | undefined) => any
-
-/**
- * An argParserFunction which is used internally to collect additional option
- * or argument strings into a single array.
- *
- * see: Commanderjs/typings/main.d.ts
- * > argParser<T>(fn: (value: string, previous: T) => T): this
- *
- * @param newArg - the value of the new option or argument
- * @param oldArg - the array of existing options or arguments collected for this
- *                 type of option or argument
- * 
- * @returns an (flat) Array of all new and old arguments as Strings.
- */
-export function appendStrArg(newArg : string, oldArg : string | string[] | undefined) {
-  if (oldArg === undefined) oldArg = []
-  if (!Array.isArray(oldArg)) oldArg = [ oldArg ]
-  oldArg.push(newArg)
-  return oldArg
-}
-
-/**
- * An argParserFunction which is used internally to collect additional option
- * or argument strings, as pre-compiled RegExps, into a single array.
- *
- * see: Commanderjs/typings/main.d.ts
- * > argParser<T>(fn: (value: string, previous: T) => T): this
- *
- * @param newArg - the value of the new option or argument
- * @param oldArg - the array of existing options or arguments collected for this type
- *                 of option or argument
- * 
- * @returns an (flat) Array of all new and old arguments converted to RegExps.
- */
-export function appendRegExpArg(newArg : string, oldArg : RegExp | RegExp[] | undefined) {
-  if (oldArg === undefined) oldArg = []
-  if (!Array.isArray(oldArg)) oldArg = [ oldArg ]
-  const newRegExpArg = new RegExp(newArg)
-  oldArg.push(newRegExpArg)
-  return oldArg
-}
-
-// Commander Options provides an internal representaion of a particular
-// definition of a Commander option/argument.
-class CommanderOptions {
-
-  /**
-   * Construct a new CommanderOptions definition.
-   *
-   * @param configPath - the configPath (a dotted path to configuration value in
-   * the loaded YAML/TOML/JSON ).
-   * @param field      - the name/symbol of the configuration field in the typed
-   * configuration instance.
-   * @param flags      - the Commander option/argument flags.
-   * @param description - the Commander option/argument help description.
-   * @param anArgParser - the argParserFunction used to process this argument.
-   * @param isArgument  - is this option/argument an argument?
-   */
-  constructor(
-    configPath : string, 
-    field : string | symbol,
-    flags : string,
-    description : string,
-    anArgParser : ArgParserFunction | undefined,
-    isArgument : boolean
-  ) {
-    this.configPath = configPath
-    this.field = field
-    this.flags = flags
-    this.description = description
-    this.argParser = anArgParser
-    this.isArgument = isArgument
-  }
-  
-  // the config path
-  configPath : string
-
-  // the field
-  field : string | symbol
-
-  // the Commander flags
-  flags : string
-
-  // the Commander description
-  description : string
-
-  // An arg parser used to process this argument
-  argParser : ArgParserFunction | undefined
-
-  // Is this an arugment (as opposed to an option)?
-  isArgument : boolean
-}
-
-// A string or symbol.
-type SString = string | symbol
-
 // Cfgr is the global Configurator class (it has no useful instances)
-export class Cfgr {
+export class CfgrHelpers {
 
   // Does nothing... do not use
   constructor() {}
@@ -162,7 +57,7 @@ export class Cfgr {
   //
 
   // TODO fix this!!!!
-  pathPrefix : string = ""
+  static pathPrefix : string = ""
 
   /**
    * normalize the given path
@@ -176,7 +71,7 @@ export class Cfgr {
    * 
    * @category Path Normalization
    */
-  normalizePath(aPath : string) {
+  static normalizePath(aPath : string) {
     var pathPrefix = process.cwd()
     if (this.pathPrefix && (0 < this.pathPrefix.length))
       pathPrefix = this.pathPrefix
@@ -211,67 +106,13 @@ export class Cfgr {
     return path.normalize(aPath)
   }  
 
-  //////////////////////////////////////////////////////////////////////////////
-  // topic: typed classes
-  //
-  // deal with classes (not really used yet...)
-  //
-
-  /**
-   * The collection of known typed configuration classes in this project
-   * 
-   * @category Typed Classes
-   */
-  configClasses : Array<Function> = []
-  
-  /**
-   * List the known typed configuration classes.
-   * 
-   * @category Typed Classes
-   */
-  listConfigClasses() {
-    const classNames : Array<Function> = []
-    //const classNames : Array<string> = []
-    this.configClasses.forEach(function(aKlass){
-      classNames.push(aKlass)
-      //classNames.push(aKlass.name)
-    })
-    return classNames
-  }
-  
-  /**
-   * A **decorator** which marks a class as part of the typed configuration.
-   * 
-   * @category Typed Classes
-   */
-  klass (/*pathArray : Array<string>*/) {
-    return function decorator(value : Function, context : ClassDecoratorContext) {
-      this.configClasses.push(value)
-    }
-  }
-
+ 
   //////////////////////////////////////////////////////////////////////////////
   // topic: configuration files
   //
   // implement the filesystem YAML/TOML/JSON configuration file to typed
   // configuration field mappings 
   //
-
-  /**
-   * The key -> field mapping.
-   * 
-   * @category Configuration Files
-   */
-  key2fieldMapping : Map<string, string> = new Map()
-
-  /**
-   * Stringify (using YAML) the key to field mapping.
-   * 
-   * @category Configuration Files
-   */
-  stringifyKey2field() {
-    return yaml.stringify(this.key2fieldMapping)
-  }
 
   /**
    * load the configuration from a dictionary/object/any.
@@ -291,16 +132,21 @@ export class Cfgr {
    *
    * @category Configuration Files
    */
-  loadConfigFromDict(aConfigInstance : any, baseConfigPath : string, aConfigDict : any) {
+  static loadConfigFromDict(
+    aConfigInstance : IConfig, // a configuration instance
+    baseConfigPath : string,
+    aConfigDict : any
+  ) {
     logger.debug(`loadFromDict (1): ${baseConfigPath} ${typeof aConfigDict}`)
-    var aField = this.key2fieldMapping.get(baseConfigPath)
+    const aCfgAny = <any>aConfigInstance
+    var aField = aConfigInstance._key2fieldMapping.get(baseConfigPath)
     if (aField) {
-      logger.debug(`loadFromDict (2): ${aField} ${typeof aConfigInstance[aField]}`)
-      if (typeof aConfigInstance[aField] === typeof aConfigDict) {
+      logger.debug(`loadFromDict (2): ${aField} ${typeof aCfgAny[aField]}`)
+      if (typeof aCfgAny[aField] === typeof aConfigDict) {
         if (aConfigDict instanceof Array) {
-          aConfigInstance[aField].push(...aConfigDict)
+          aCfgAny[aField].push(...aConfigDict)
         } else {
-          aConfigInstance[aField] = aConfigDict
+          aCfgAny[aField] = aConfigDict
         }
       }
     } else if (aConfigDict instanceof Array) {
@@ -310,7 +156,7 @@ export class Cfgr {
       logger.debug(yaml.stringify(aConfigDict))
       logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
       Object.keys(aConfigDict).forEach(function(aKey: string | symbol){
-        this.loadConfigFromDict(
+        CfgrHelpers.loadConfigFromDict(
           aConfigInstance,
           ((0 < baseConfigPath.length) ?
             baseConfigPath + '.' + String(aKey) :
@@ -331,7 +177,7 @@ export class Cfgr {
    *
    * @category Configuration Files
    */
-  async loadConfigFromFile(aConfigInstance : any, aConfigPath : string) {
+  static async loadConfigFromFile(aConfigInstance : any, aConfigPath : string) {
     logger.debug(`LOADING from ${aConfigPath}`)
     var configText : string = ""
     logger.debug(`Trying to load configuration from [${aConfigPath}]`)
@@ -344,7 +190,7 @@ export class Cfgr {
     var fileConfig : any = {}
     if (configText) {
       logger.debug(`Loaded configuration from [${aConfigPath}]`)
-      const lcConfigPath :string = aConfigPath.toLowerCase() ;
+      const lcConfigPath : string = aConfigPath.toLowerCase() ;
       if (lcConfigPath.endsWith('yaml') || lcConfigPath.endsWith('yml')) {
         fileConfig = yaml.parse(configText) ;
       } else if (lcConfigPath.endsWith('toml')) {
@@ -354,7 +200,7 @@ export class Cfgr {
       }
     }
     if (fileConfig) {
-      this.loadConfigFromDict(aConfigInstance, "", fileConfig)
+      CfgrHelpers.loadConfigFromDict(aConfigInstance, "", fileConfig)
     }
     logger.debug("---------------")
     logger.debug(yaml.stringify(aConfigInstance))
@@ -375,7 +221,7 @@ export class Cfgr {
    * @category Configuration Files
    */
 
-  async loadConfigFiles(aConfigInstance : any , configPaths : Array<string>) {
+  static async loadConfigFiles(aConfigInstance : any , configPaths : Array<string>) {
     var loadedPaths : Array<string> = []
     if ( ! ('configPaths' in aConfigInstance) ) {
       aConfigInstance['configPaths'] = []
@@ -400,45 +246,12 @@ export class Cfgr {
       }
     }
   }
-
-  /**
-   * Add a dotted configuration path <-> field mapping
-   * 
-   * @param aConfigPath - the dotted configuration path
-   * @param contextName - the field name
-   *
-   * @category Configuration Files
-   */
-  addConfigPath( aConfigPath : string, contextName : string | symbol) {
-    this.key2fieldMapping.set(aConfigPath, String(contextName))
-  }
-
-  /**
-   * A **decorator** which marks a given object/any field as a configured field.
-   *
-   * @param aConfigPath - the dotted configuration path to associate with this
-   * configured field.
-   *
-   * @category Configuration Files
-   */
-  key (aConfigPath : string) {
-    return function decorator (value : undefined , context : ClassFieldDecoratorContext) {
-      this.addConfigPath(aConfigPath, context.name)
-    }
-  }
   
   //////////////////////////////////////////////////////////////////////////////
   // topic: configuration defaults
   //
   // deal with (explicit) defaults
   
-  /**
-   * Map a configured field to a string which provides a default value.
-   * 
-   * @category Configuration Defaults
-   */
-  defaultStringsMapping : Map<string| symbol, string> = new Map()
-
   /**
    * Walk through all known defaults and save their values into the
    * corresponding fields. 
@@ -455,8 +268,8 @@ export class Cfgr {
    *
    * @category Configuration Defaults
    */
-  updateDefaults(aConfigInstance : any, aMapping : Map<string, string>) {
-    this.defaultStringsMapping.forEach(function(aDefaultStr : string, aKey : SString){
+  static updateDefaults(aConfigInstance : any, aMapping : Map<string, string>) {
+    aConfigInstance.defaultStringsMapping.forEach(function(aDefaultStr : string, aKey : SString){
       if (aKey in aConfigInstance) {
         var aRegExp = /\${([^\}]+)}/g
         // The following is an evil bodge!
@@ -482,49 +295,12 @@ export class Cfgr {
     })
   }
 
-  /**
-   * A **decorator** used to associate a default string with a configured field.
-   *
-   * @param aDefaultStr - the string to be used as the initial default value for
-   * the associated configured field.
-   *
-   * @category Configuration Defaults
-   */
-  defaultStr(aDefaultStr : string) {
-    return function decorator (value: undefined, context : ClassFieldDecoratorContext) {
-      this.defaultStringsMapping.set(context.name, aDefaultStr)
-    }
-  }
-
   //////////////////////////////////////////////////////////////////////////////
   // topic: command line options
   //
   // deal with <Commander: https://github.com/tj/commander.js/> based command
   // line options....
   //
-  /**
-   * The array of Commander cli options (<Configurator.CommanderOptions)
-   * 
-   * @category Command Line Options
-   */
-  cliOptions : Array<CommanderOptions> = []
-
-  /**
-   * The mapping of cli option keys (usually the long option without the `--) to
-   * configured fields.
-   * 
-   * @category Command Line Options
-   */
-  cliOpt2fieldMapping : Map<string, string | symbol> = new Map()
-  
-  /**
-   * Stingify (via YAML) the currently known array of Commander cli options
-   * 
-   * @category Command Line Options
-   */
-  stringifyCliOptions() {
-    return yaml.stringify(this.cliOptions)
-  }
 
   /**
    * Setup the Commander command line interface
@@ -539,11 +315,15 @@ export class Cfgr {
    *
    * @category Command Line Options
    */
-  setupCommander(
-    cliArgs : Command, name : string, description : string, version : string
+  static setupCommander(
+    aConfigInstance : any,
+    cliArgs : Command,
+    name : string,
+    description : string,
+    version : string
   ) {
     cliArgs.name(name).description(description).version(version)
-    this.cliOptions.forEach(function(aCmdOpt : CommanderOptions){
+    aConfigInstance.cliOptions.forEach(function(aCmdOpt : CommanderOptions){
       if (aCmdOpt.isArgument) {
         var anArgument : Argument = new Argument(aCmdOpt.flags, aCmdOpt.description)
         if (aCmdOpt.argParser) {anArgument.argParser(aCmdOpt.argParser) }
@@ -556,7 +336,7 @@ export class Cfgr {
         } else if (anOption.short) {
           cliOpt = anOption.short.replace('--','')
         }
-        this.cliOpt2fieldMapping.set(cliOpt, aCmdOpt.field)
+        aConfigInstance.cliOpt2fieldMapping.set(cliOpt, aCmdOpt.field)
         if (aCmdOpt.argParser) { 
           anOption.argParser(aCmdOpt.argParser)
         }
@@ -574,7 +354,7 @@ export class Cfgr {
    *
    * @category Command Line Options
    */
-  updateConfigFromCli(aConfigInstance : any, cliArgs : Command) {
+  static updateConfigFromCli(aConfigInstance : any, cliArgs : Command) {
     if ((0 < cliArgs.args.length) && aConfigInstance['initialFiles']) {
       cliArgs.args.forEach(function (anInitialFile) {
         aConfigInstance['initialFiles'].push(anInitialFile)
@@ -584,7 +364,7 @@ export class Cfgr {
     logger.debug(typeof cliOpts)
     Object.keys(cliOpts).forEach(function(aKey: string){
       var aValue = cliOpts[aKey]
-      var aField = this.cliOpt2fieldMapping.get(aKey)
+      var aField = aConfigInstance.cliOpt2fieldMapping.get(aKey)
       if (aField && (typeof aConfigInstance[aField] === typeof aValue)) {
         if (aValue instanceof Array) {
           var valueArray : Array<string> = aValue
@@ -612,63 +392,20 @@ export class Cfgr {
    *
    * @category Command Line Options
    */
-  parseCliOptions(aConfigInstance : any, name : string, description : string, version : string) {
+  static parseCliOptions(aConfigInstance : any, name : string, description : string, version : string) {
     var cliArgs = new Command()
-    this.setupCommander(cliArgs, name, description, version)
+    CfgrHelpers.setupCommander(
+      aConfigInstance, cliArgs, name, description, version
+    )
     cliArgs.parse(process.argv)
-    this.updateConfigFromCli(aConfigInstance, cliArgs)
+    CfgrHelpers.updateConfigFromCli(aConfigInstance, cliArgs)
   }
 
   /**
-   * A **decorator** which associates a configuration path, and a command line
-   * _option_ with a configured field.
-   *
-   * @param configPath - the configPath (a dotted path to configuration value in
-   * the loaded YAML/TOML/JSON ).
-   * @param flags      - the Commander option flags.
-   * @param description - the Commander option help description.
-   * @param anArgParser - the argParserFunction used to process this argument.
-   *
-   * @category Command Line Options
+   * Assemble a configuration instance from a collection of configuration
+   * classes.
    */
-  cliOption(
-    aConfigPath : string,
-    flags : string,
-    description : string,
-    anArgParser : ArgParserFunction | undefined
-  )  {
-    return function decoration(value : any, context : ClassFieldDecoratorContext) {
-      this.addConfigPath(aConfigPath, context.name)
-      this.cliOptions.push(new CommanderOptions(
-        aConfigPath, context.name, flags, description, anArgParser, false
-      ))
-    }
+  static assembleConfigFrom(...configKlasses : Array<any>) : any {
+    return {}
   }
-
-  /**
-   * A **decorator** which associates a configuration path, and a command line
-   * _argument_ with a configured field.
-   *
-   * @param configPath - the configPath (a dotted path to configuration value in
-   * the loaded YAML/TOML/JSON )
-   * @param flags      - the Commander argument flags.
-   * @param description - the Commander argument help description.
-   * @param anArgParser - the argParserFunction used to process this argument.
-   *
-   * @category Command Line Options
-   */
-  cliArgument(
-    aConfigPath : string,
-    flags : string,
-    description : string,
-    anArgParser : ArgParserFunction | undefined
-  ) {
-    return function decoration(value: any, context : ClassFieldDecoratorContext) {
-      this.addConfigPath(aConfigPath, context.name)
-      this.cliOptions.push(new CommanderOptions(
-        aConfigPath, context.name, flags, description, anArgParser, true
-      ))
-    }
-  }
-
 }

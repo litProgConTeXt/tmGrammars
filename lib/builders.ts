@@ -11,7 +11,7 @@ import * as fsp  from "fs/promises"
 import * as path from "path"
 import * as yaml from "yaml"
 
-import { Cfgr                    } from "./configurator.js"
+import { Cfgr                    } from "./cfgrHelpers.js"
 import { BaseConfig as Config    } from "./configBase.js"
 import { Document, DocumentCache } from "./documents.js"
 import { Grammars                } from "./grammars.js"

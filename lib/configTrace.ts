@@ -13,12 +13,13 @@
 
 import * as yaml from 'yaml'
 
-import { Cfgr, appendStrArg, appendRegExpArg } from "./configurator.js"
-import { BaseConfig                          } from "./configBase.js"
+import { CfgrCollector, appendStrArg, appendRegExpArg  } from "./cfgrCollector.ts"
+
+const cfgr = new CfgrCollector()
 
 // The configuration used by the `tmgt` TextMate Grammar Tracing tool.
-@Cfgr.klass()
-export class TraceConfig extends BaseConfig {
+@cfgr.klass()
+export class TraceConfig {
 
   /**
    * Should the actions be listed? (Default: false)
@@ -26,7 +27,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:** showActions
    * - **cli:* --actions
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'showActions',
     '--actions',
     'Show the actions',
@@ -40,7 +41,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:** showActions
    * - **cli:* --actions
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'showBuilders',
     '--builders',
     'Show the builders',
@@ -54,7 +55,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* showAllGrammars
    * - **cli:* -sag, --showAllGrammars
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'showAllGrammars',
     '-sag, --showAllGrammars',
     'Show all (known raw) grammars',
@@ -68,7 +69,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* showGrammar
    * - **cli:* -sg, --showGrammar
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'showGrammar',
     '-sa, --showGrammar <baseScope>',
     'Show the (raw) grammar',
@@ -83,7 +84,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* trace.lines.include
    * - **cli:* -tl, --traceLine
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'trace.lines.include',
     '-tl, --traceLine <regexp>',
     'Trace lines which match the specified regexp',
@@ -98,7 +99,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* trace.lines.exclude
    * - **cli:* -tlx, --tlExclude
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'trace.lines.exclude',
     '-tlx, --tlExclude <regexp>',
     'Do not trace lines which match the specified regexp',
@@ -112,7 +113,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* trace.actions.include
    * - **cli:* -ta, --traceAction
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'trace.actions.include',
     '-ta, --traceAction <action>',
     'Trace the specified action',
@@ -126,7 +127,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* trace.actions.exclude
    * - **cli:* -tax, --taExclude
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'trace.actions.exclude',
     '-tax, --taExclude <action>',
     'Do not trace the specified action',
@@ -140,7 +141,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* trace.scopes.include
    * - **cli:* -ts, --traceScope
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'trace.scopes.include',
     '-ts, --traceScope <scope>',
     'Trace the specified scope',
@@ -154,7 +155,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* trace.scopes.exnclude
    * - **cli:* -tsx, --tsExclude
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'trace.scopes.exclude',
     '-tsx, --tsExclude <scope>',
     'Do not trace the specified scope',
@@ -168,7 +169,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* trace.structures.include
    * - **cli:* -tS, --traceStructure
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'trace.structures.include',
     '-tS, --traceStructure <struct>',
     'Trace the specified structure',
@@ -182,7 +183,7 @@ export class TraceConfig extends BaseConfig {
    * - **configPath:* trace.structures.exclude
    * - **cli:* -tSx, --tSExclude
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'trace.structures.exclude',
     '-tSx, --tSExclude <struct>',
     'Do not trace the specified structure',

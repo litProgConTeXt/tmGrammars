@@ -1,7 +1,7 @@
 /**
- * Testing Configurator
+ * Testing CfgrHelpers
  *
- * We test the Cfgr class by:
+ * We test the CfgrHelpers class by:
  *
  * -
  *
@@ -15,14 +15,22 @@ import { Command } from "commander"
 
 import { expect, should, assert } from  'chai'
 
-import { Cfgr, appendStrArg, appendRegExpArg } from '../lib/configurator.js'
+import {
+  IConfig,
+  CfgrCollector,
+  appendStrArg,
+  appendRegExpArg
+}                      from '../lib/cfgrCollector.ts'
+import { CfgrHelpers } from '../lib/cfgrHelpers.ts'
+
+const cfgr = new CfgrCollector()
 
 // The base configuration class
-@Cfgr.klass()
-export class BaseConfig {
+@cfgr.klass()
+export class BaseConfig extends IConfig{
 
   // Does nothing... do not use
-  constructor() {}
+  constructor() {super()}
 
   /**
    *  An array of configuration paths which will be loaded in order.
@@ -30,13 +38,13 @@ export class BaseConfig {
    *  - **configPath:** configPaths
    *  - **cli:**        -c, --config
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'configPaths',
     '-c, --config <path>',
     `Load one or more configuration files (YAML|TOML|JSON)`,
     appendStrArg
   )
-  @Cfgr.defaultStr('${configBaseName}.yaml')
+  @cfgr.defaultStr('${configBaseName}.yaml')
   configPaths : Array<string> = []
 
   /**
@@ -45,7 +53,7 @@ export class BaseConfig {
    * - **configPath:** logLevel
    * - **cli:** -ll, --logLevel
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'logLevel',
     '-ll, --logLevel <levelName>',
     'Set the logger log level',
@@ -60,7 +68,7 @@ export class BaseConfig {
    * - **configPath:** pathPrefix
    * - **cli:** --path
    */
-  @Cfgr.cliOption(
+  @cfgr.cliOption(
     'pathPrefix',
     '--path <aPath>',
     "A path prefix to prepend to all files loaded which don't start with a '~|@|$'",
@@ -74,13 +82,13 @@ export class BaseConfig {
    * - **configPath:** parallel
    * - **cli:** -p, --parallel
    */
-    @Cfgr.cliOption(
-      'parallel',
-      '-p, --parallel',
-      'Run all scoped actions in parallel',
-      undefined
-    )
-    parallel : boolean = false
+  @cfgr.cliOption(
+    'parallel',
+    '-p, --parallel',
+    'Run all scoped actions in parallel',
+    undefined
+  )
+  parallel : boolean = false
 
   /**
    * The files to be parsed by the LPiC tool
@@ -88,7 +96,7 @@ export class BaseConfig {
    * - **configPath:** initialFiles
    * - **cli:** all remaining (non-optional) arguments
    */
-  @Cfgr.cliArgument(
+  @cfgr.cliArgument(
     'initialFiles',
     '[path]',
     'The documents to parse',
@@ -124,7 +132,7 @@ describe('Cfgr', function() {
 
       var context : Map<string, string> = new Map()
       context.set('configBaseName', 'tmgt')
-      Cfgr.updateDefaults(config, context)
+      CfgrHelpers.updateDefaults(config, context)
       expect(config).is.not.undefined
       expect(config.configPaths).is.instanceof(Array)
       expect(config.configPaths.length).is.equal(1)
@@ -134,7 +142,7 @@ describe('Cfgr', function() {
 
   describe('#loadConfigFromDict', function () {
     it('should load configuration from a dictionary', function () {
-      var config = new BaseConfig()
+      var config = CfgrHelpers.assembleConfigFrom(BaseConfig)
       expect(config).is.not.undefined
       expect(config.configPaths).is.instanceof(Array)
       expect(config.configPaths.length).is.equal(0)
@@ -145,7 +153,7 @@ describe('Cfgr', function() {
       expect(config.initialFiles.length).is.equal(0)
 
       var testDict = yaml.parse(testYaml)
-      Cfgr.loadConfigFromDict(config, '',testDict)
+      CfgrHelpers.loadConfigFromDict(<IConfig>config, '',testDict)
       //console.log(config)
       expect(config.configPaths).is.instanceof(Array)
       expect(config.configPaths.length).is.equal(2)
@@ -215,7 +223,7 @@ describe('Cfgr', function() {
       expect(config.initialFiles).is.instanceof(Array)
       expect(config.initialFiles.length).is.equal(0)
       var cliArgs = new Command()
-      Cfgr.setupCommander(cliArgs, "test", "a test description", "0.0.1")
+      CfgrHelpers.setupCommander(config, cliArgs, "test", "a test description", "0.0.1")
       cliArgs.parse([
         "anExecPath", "aScriptPath",
         "--config", "testConfig.yaml",
@@ -224,7 +232,7 @@ describe('Cfgr', function() {
         "--parallel",
         "testA1", "testB1"
       ])
-      Cfgr.updateConfigFromCli(config, cliArgs)
+      CfgrHelpers.updateConfigFromCli(config, cliArgs)
       expect(config.configPaths).is.instanceof(Array)
       expect(config.configPaths.length).is.equal(1)
       expect(config.configPaths[0]).is.equal("testConfig.yaml")

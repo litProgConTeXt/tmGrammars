@@ -10,7 +10,7 @@ import * as fsp  from "fs/promises"
 import * as path from "path"
 import * as yaml from "yaml"
 
-import { Cfgr                 } from "./configurator.js"
+import { Cfgr                 } from "./cfgrHelpers.js"
 import { Logging, ValidLogger } from "./logging.js"
 
 const logger : ValidLogger = Logging.getLogger('lpic')

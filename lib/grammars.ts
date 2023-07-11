@@ -24,7 +24,7 @@ import * as vsctm     from "vscode-textmate"
 import * as oniguruma from "vscode-oniguruma"
 import * as yaml      from "yaml"
 
-import { Cfgr                          } from "./configurator.js"
+import { Cfgr                          } from "./cfgrHelpers.js"
 import { ITraceConfig, addITraceConfig } from "./configITrace.js"
 import { DocumentCache                 } from "./documents.js"
 import { ScopeActions                  } from "./scopeActions.js"

@@ -6,7 +6,7 @@
 
 import * as yaml from "yaml"
 
-import { Cfgr                  } from "./configurator.js"
+import { Cfgr                  } from "./cfgrHelpers.js"
 import { BaseConfig            } from "./configBase.js"
 import { Builders              } from "./builders.js"
 import { TraceConfig as Config } from "./configTrace.js"
