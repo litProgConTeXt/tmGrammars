@@ -1,4 +1,5 @@
-
+import * as os   from "os"
+import * as path from "path"
 import * as yaml from "yaml"
 
 import { Logging, ValidLogger       } from "./logging.js"
@@ -116,9 +117,68 @@ export class CommanderOptions {
 export type SString = string | symbol
 
 export class IConfig {
-  _key2fieldMapping      : Map<string, string>      = new Map()
-  _defaultStringsMapping : Map<SString, string>     = new Map()
-  _cliOptions            : Array<CommanderOptions>  = []
+  _key2fieldMapping      : Map<string, string>
+  _defaultStringsMapping : Map<SString, string>
+  _cliOptions            : Array<CommanderOptions>
+  _cliOpt2fieldMapping   : Map<string, SString>
+
+  constructor() {
+    const pAny = Object.getPrototypeOf(this)
+    this._key2fieldMapping      = pAny._key2fieldMapping
+    this._defaultStringsMapping = pAny._defaultStringsMapping
+    this._cliOptions            = pAny._cliOptions
+    this._cliOpt2fieldMapping   = pAny._cliOpt2fieldMapping
+  }
+
+  pathPrefix : string = ""
+
+  /**
+   * normalize the given path
+   *
+   * At the moment, we can normalize any path that begins with `~` to the user's
+   * home directory.
+   *
+   * Normalize paths using the built in `path.normalize` function.
+   *
+   * @param aPath - the filesystem path to be normalized
+   * 
+   * @category Path Normalization
+   */
+  normalizePath(aPath : string) {
+      var pathPrefix = process.cwd()
+      if (this.pathPrefix && (0 < this.pathPrefix.length))
+        pathPrefix = this.pathPrefix
+    
+      if (aPath.startsWith('~')) {
+        // load from a home directory
+        pathPrefix = os.homedir()
+        if (!aPath.startsWith('~/') && !aPath.startsWith('~\\') && aPath !== '~') {
+          pathPrefix = path.dirname(pathPrefix)
+        }  
+        aPath = aPath.replace(/^~/, '')
+      //} else if (aPath.startsWith('@')) {
+      //  // load from node_modules....
+      //  pathPrefix = path.dirname(__filename)
+      //  while ( pathPrefix && !pathPrefix.endsWith('node_modules')) {
+      //    pathPrefix = path.dirname(pathPrefix)
+      //  }
+      //  aPath = aPath.replace(/^@/, '')
+      //} else if (aPath.startsWith('$')) {
+      //  // load from this repository...
+      //  pathPrefix = path.dirname(__filename)
+      //  while ( pathPrefix && !pathPrefix.endsWith('node_modules')) {
+      //    pathPrefix = path.dirname(pathPrefix)
+      //  }
+      //  pathPrefix = path.dirname(pathPrefix)
+      //  aPath = aPath.replace(/^\$/, '')
+      }  
+      aPath = path.join(
+        pathPrefix,
+        aPath
+      )  
+      return path.normalize(aPath)
+    }  
+  
 }
 
 export class CfgrCollector {
@@ -220,7 +280,7 @@ export class CfgrCollector {
    * 
    * @category Command Line Options
    */
-  cliOpt2fieldMapping : Map<string, string | symbol> = new Map()
+  cliOpt2fieldMapping : Map<string, SString> = new Map()
   
   /**
    * Stingify (via YAML) the currently known array of Commander cli options
@@ -302,7 +362,8 @@ export class CfgrCollector {
       value.prototype._key2fieldMapping      = self.key2fieldMapping
       value.prototype._defaultStringsMapping = self.defaultStringsMapping
       value.prototype._cliOptions            = self.cliOptions
-       }
+      value.prototype._cliOpt2fieldMapping   = self.cliOpt2fieldMapping
+    }
   }
 
 }

@@ -12,7 +12,6 @@ import * as path from "path"
 import * as yaml from "yaml"
 
 import { Builders                } from "./builders.js"
-import { Cfgr                    } from "./cfgrHelpers.js"
 import { BaseConfig as Config    } from "./configBase.js"
 import { Document, DocumentCache } from "./documents.js"
 import { Grammars                } from "./grammars.js"
@@ -175,7 +174,7 @@ export class ScopeActions {
    */
   async loadActionsFrom(aDir : string, config : Config) {
     logger.debug(`loading actions from ${aDir}`)
-    aDir = Cfgr.normalizePath(aDir)
+    aDir = config.normalizePath(aDir)
     if (this.loadedActionDirs.has(aDir)) return
     this.loadedActionDirs.add(aDir)
     const openedDir = await fsp.opendir(aDir)

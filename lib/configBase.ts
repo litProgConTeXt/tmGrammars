@@ -17,16 +17,20 @@
 
 import * as yaml from 'yaml'
 
-import { CfgrCollector, appendStrArg  } from "./cfgrCollector.ts"
-import { ConsoleLogger                } from "./logging.ts"
+import { 
+  IConfig,
+  CfgrCollector,
+  appendStrArg
+} from "./cfgrCollector.js"
+import { ConsoleLogger                } from "./logging.js"
 
 const cfgr = new CfgrCollector()
 
 // The base configuration class
-export class BaseConfig {
+export class BaseConfig extends IConfig {
 
   // Does nothing... do not use
-  constructor() { }
+  constructor() { super() }
 
   /**
    *  An array of configuration paths which will be loaded in order.

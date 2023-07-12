@@ -15,17 +15,22 @@ import { Command } from "commander"
 
 import { expect, should, assert } from  'chai'
 
-import { CfgrCollector, appendStrArg, appendRegExpArg } from '../lib/cfgrCollector.ts'
-import { CfgrHelpers } from '../lib/cfgrHelpers.ts'
+import {
+  IConfig,
+  CfgrCollector,
+  appendStrArg,
+  appendRegExpArg
+} from '../lib/cfgrCollector.js'
+import { CfgrHelpers } from '../lib/cfgrHelpers.js'
 
 const cfgr = new CfgrCollector()
 
 // The base configuration class
 @cfgr.klass()
-export class BaseConfig {
+export class BaseConfig extends IConfig {
 
   // Does nothing... do not use
-  constructor() {}
+  constructor() {super()}
 
   /**
    *  An array of configuration paths which will be loaded in order.

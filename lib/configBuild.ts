@@ -13,14 +13,15 @@
 
 import * as yaml from 'yaml'
 
-import { CfgrCollector, appendStrArg  } from "./cfgrCollector.ts"
+import { CfgrCollector, appendStrArg  } from "./cfgrCollector.js"
+import { BaseConfig                   } from "./configBase.js"
 
 const cfgr = new CfgrCollector()
 
 // The configuration used by the LPiC-tool to extract source code from a LPiC
 // document.
 @cfgr.klass()
-export class BuildConfig {
+export class BuildConfig extends BaseConfig {
 
   /**
    * The directory into which all extracted source code should be put.

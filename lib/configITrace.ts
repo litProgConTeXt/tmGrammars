@@ -11,6 +11,9 @@
  * @module
  */
 
+
+import { BaseConfig } from "./configBase.js"
+
 // The configuration used by the `tmgt` TextMate Grammar Tracing tool.
 export interface ITraceConfig {
 
@@ -44,18 +47,34 @@ export interface ITraceConfig {
  * @returns the configuration instance with the additional ITraceConfig
  * properties
  */
-export function addITraceConfig(aConfigInstance : any) : ITraceConfig {
-  Object.defineProperty(aConfigInstance, 'traceLinesInclude', [])
-  Object.defineProperty(aConfigInstance, 'traceLinesExclude', [])
+export function addITraceConfig<Config extends BaseConfig>(
+  aConfigInstance : Config
+) : ITraceConfig {
+  const aCfgAny = <any>aConfigInstance
 
-  Object.defineProperty(aConfigInstance, 'traceActionsInclude', [])
-  Object.defineProperty(aConfigInstance, 'traceActionsExclude', [])
+  if (!aCfgAny['traceLinesInclude'])
+    Object.defineProperty(aConfigInstance, 'traceLinesInclude', [])
 
-  Object.defineProperty(aConfigInstance, 'traceScopesInclude', [])
-  Object.defineProperty(aConfigInstance, 'traceScopesExclude', [])
+  if (!aCfgAny['traceLinesExclude'])
+    Object.defineProperty(aConfigInstance, 'traceLinesExclude', [])
 
-  Object.defineProperty(aConfigInstance, 'traceStructuresInclude', [])
-  Object.defineProperty(aConfigInstance, 'traceStructuresExclude', [])
+  if (!aCfgAny['traceActionsInclude'])
+    Object.defineProperty(aConfigInstance, 'traceActionsInclude', [])
 
-  return aConfigInstance
+  if (!aCfgAny['traceActionsExclude'])
+    Object.defineProperty(aConfigInstance, 'traceActionsExclude', [])
+
+  if (!aCfgAny['traceScopesInclude'])
+    Object.defineProperty(aConfigInstance, 'traceScopesInclude', [])
+
+  if (!aCfgAny['traceScopesExclude'])
+    Object.defineProperty(aConfigInstance, 'traceScopesExclude', [])
+
+  if (!aCfgAny['traceStructuresInclude'])
+    Object.defineProperty(aConfigInstance, 'traceStructuresInclude', [])
+
+  if (!aCfgAny['traceStructuresExclude'])
+    Object.defineProperty(aConfigInstance, 'traceStructuresExclude', [])
+
+  return <ITraceConfig>aCfgAny // trust me ;-(
 }

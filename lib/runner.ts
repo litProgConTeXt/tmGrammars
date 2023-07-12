@@ -6,7 +6,7 @@
 
 import * as yaml from "yaml"
 
-import { Cfgr                  } from "./cfgrHelpers.js"
+import { CfgrHelpers           } from "./cfgrHelpers.js"
 import { BaseConfig            } from "./configBase.js"
 import { Builders              } from "./builders.js"
 import { TraceConfig as Config } from "./configTrace.js"
@@ -39,9 +39,9 @@ export async function setupTMGTool(
   var config : BaseConfig = <BaseConfig> new configClass()
   var context : Map<string, string> = new Map()
   context.set('configBaseName', progName)
-  Cfgr.updateDefaults(config, context)
-  Cfgr.parseCliOptions(config, progName, progDesc, progVersion)
-  await Cfgr.loadConfigFiles(config, [])
+  CfgrHelpers.updateDefaults(config, context)
+  CfgrHelpers.parseCliOptions(config, progName, progDesc, progVersion)
+  await CfgrHelpers.loadConfigFiles(config, [])
 
   logger.debug("--------------------------------------------------------------")
   logger.debug(yaml.stringify(config))
@@ -71,7 +71,7 @@ export async function setupTMGTool(
     logger.debug("\n--loading grammars---------------------------------------")
     await Promise.all(config.loadGrammars.map( async (aGrammarPath : string) => {
       logger.debug(`starting to load grammar from [${aGrammarPath}]`)
-      await Grammars.theGrammars.loadGrammarFrom(aGrammarPath)
+      await Grammars.theGrammars.loadGrammarFrom(aGrammarPath, config)
       logger.debug(`finished loading grammar from [${aGrammarPath}]`)
     }))     
     logger.debug("---------------------------------------------------------")
@@ -81,7 +81,7 @@ export async function setupTMGTool(
 }  
 
 
-export function loadRunner(config : BaseConfig) {
+export function loadRunner<Config extends BaseConfig>(config : Config) {
   /*
   ////////////////////////////////////////////////////////////////////////////
   // remove pathPrefix from the remaining command line arguments
@@ -158,7 +158,7 @@ export function loadRunner(config : BaseConfig) {
  * @returns a Promise which when fulfilled means that the tool has run
  * successfully.
  */
-export async function runTMGTool(config : BaseConfig ) {
+export async function runTMGTool<Config extends BaseConfig>(config : Config ) {
 
   if (config.initialFiles.length < 1) {
     console.log("No document specified to trace while parsing")

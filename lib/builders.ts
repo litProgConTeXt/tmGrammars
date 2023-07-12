@@ -11,7 +11,7 @@ import * as fsp  from "fs/promises"
 import * as path from "path"
 import * as yaml from "yaml"
 
-import { Cfgr                    } from "./cfgrHelpers.js"
+import { CfgrHelpers             } from "./cfgrHelpers.js"
 import { BaseConfig as Config    } from "./configBase.js"
 import { Document, DocumentCache } from "./documents.js"
 import { Grammars                } from "./grammars.js"
@@ -170,7 +170,7 @@ export class Builders {
    */
   async loadBuildersFrom(aDir : string, config : Config) {
     logger.debug(`loading builders from ${aDir}`)
-    aDir = Cfgr.normalizePath(aDir)
+    aDir = config.normalizePath(aDir)
      if (this.loadedBuilderDirs.has(aDir)) return
     this.loadedBuilderDirs.add(aDir)
     const openedDir = await fsp.opendir(aDir)

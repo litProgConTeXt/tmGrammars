@@ -13,13 +13,15 @@
 
 import * as yaml from 'yaml'
 
-import { CfgrCollector, appendStrArg, appendRegExpArg  } from "./cfgrCollector.ts"
+import { CfgrCollector, appendStrArg, appendRegExpArg  } from "./cfgrCollector.js"
+import { BaseConfig                                    } from "./configBase.js"
+import { ITraceConfig                                  } from "./configITrace.js"
 
 const cfgr = new CfgrCollector()
 
 // The configuration used by the `tmgt` TextMate Grammar Tracing tool.
 @cfgr.klass()
-export class TraceConfig {
+export class TraceConfig extends BaseConfig implements ITraceConfig {
 
   /**
    * Should the actions be listed? (Default: false)

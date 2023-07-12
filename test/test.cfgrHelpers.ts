@@ -20,8 +20,8 @@ import {
   CfgrCollector,
   appendStrArg,
   appendRegExpArg
-}                      from '../lib/cfgrCollector.ts'
-import { CfgrHelpers } from '../lib/cfgrHelpers.ts'
+}                      from '../lib/cfgrCollector.js'
+import { CfgrHelpers } from '../lib/cfgrHelpers.js'
 
 const cfgr = new CfgrCollector()
 
@@ -116,20 +116,19 @@ initialFiles:
   - testA
   - testB
 `
-
 describe('Cfgr', function() {
   describe('#normalizePath', function() {
     it.skip('should normalize paths', function() {
     })
   })
-
+  
   describe('#updateDefaults', function () {
     it('should update the defaults', function () {
       var config = new BaseConfig()
       expect(config).is.not.undefined
       expect(config.configPaths).is.instanceof(Array)
       expect(config.configPaths.length).is.equal(0)
-
+      
       var context : Map<string, string> = new Map()
       context.set('configBaseName', 'tmgt')
       CfgrHelpers.updateDefaults(config, context)
@@ -139,10 +138,10 @@ describe('Cfgr', function() {
       expect(config.configPaths[0]).is.equal("tmgt.yaml")
     })
   })
-
+  
   describe('#loadConfigFromDict', function () {
     it('should load configuration from a dictionary', function () {
-      var config = CfgrHelpers.assembleConfigFrom(BaseConfig)
+      var config = <BaseConfig>CfgrHelpers.assembleConfigFrom(BaseConfig)
       expect(config).is.not.undefined
       expect(config.configPaths).is.instanceof(Array)
       expect(config.configPaths.length).is.equal(0)
@@ -154,7 +153,6 @@ describe('Cfgr', function() {
 
       var testDict = yaml.parse(testYaml)
       CfgrHelpers.loadConfigFromDict(<IConfig>config, '',testDict)
-      //console.log(config)
       expect(config.configPaths).is.instanceof(Array)
       expect(config.configPaths.length).is.equal(2)
       expect(config.configPaths[1]).is.equal("cTestB")
@@ -166,7 +164,7 @@ describe('Cfgr', function() {
       expect(config.initialFiles[1]).is.equal("testB")
     })
   })
-
+  
   describe('#appendStrArg', function () {
     it('should append an string argument', function () {
       var result = appendStrArg("testA", undefined)
@@ -188,7 +186,7 @@ describe('Cfgr', function() {
       expect(result[2]).is.equal("testC")
     })
   })
-
+  
   describe('#appendRegExpArg', function () {
     it('should append an string argument', function () {
       var result = appendRegExpArg("testA", undefined)
@@ -201,7 +199,7 @@ describe('Cfgr', function() {
       expect(result.length).is.equal(2)
       expect(result[0]).is.eql(/testA/)
       expect(result[1]).is.eql(/testB/)
-
+      
       result = appendRegExpArg("testC", [/testA/, /testB/])
       expect(result).is.instanceof(Array)
       expect(result.length).is.equal(3)
@@ -210,7 +208,7 @@ describe('Cfgr', function() {
       expect(result[2]).is.eql(/testC/)
     })
   })
-
+  
   describe('#parseCliOptions', function () {
     it('should parse the cli options and set the config', function () {
       var config = new BaseConfig()
@@ -244,12 +242,13 @@ describe('Cfgr', function() {
       expect(config.initialFiles[1]).is.equal("testB1")
     })
   })
-
+  
   // should test getSrcDir and getProjDescPath ... eventually
-
+  
   // should test loadConfigFromFile 
-
+  
   // should test loadConfig
-
+  
   // since these all touch the file system... we won't bother at the moment...
+
 })

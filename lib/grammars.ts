@@ -24,8 +24,9 @@ import * as vsctm     from "vscode-textmate"
 import * as oniguruma from "vscode-oniguruma"
 import * as yaml      from "yaml"
 
-import { Cfgr                          } from "./cfgrHelpers.js"
+import { BaseConfig                    } from "./configBase.js"
 import { ITraceConfig, addITraceConfig } from "./configITrace.js"
+import { TraceConfig                   } from "./configTrace.js"
 import { DocumentCache                 } from "./documents.js"
 import { ScopeActions                  } from "./scopeActions.js"
 import { Structures                    } from "./structures.js"
@@ -166,10 +167,12 @@ export class Grammars {
    * while parsing. The triggered actions normally store any data extracted from
    * the document in various named Structures in the Structures module.
    */
-  async traceParseOf(aDocPath : string, config : ITraceConfig | undefined) {
+  async traceParseOf<Config extends BaseConfig>(aDocPath : string, config : Config) {
     var traceObj
     var traceOutput
-    if (config && ('traceLinesInclude' in config)) {
+    const aCfgAny = <any>config
+    var itConfig : TraceConfig = <TraceConfig>aCfgAny
+    if ('traceLinesInclude' in config) {
       traceOutput = true
       traceObj = function (
         traceInclude : RegExp[], traceExclude : RegExp[], aStr : string
@@ -195,7 +198,7 @@ export class Grammars {
         return true
       }
     } else {
-      config = addITraceConfig({})
+      itConfig = <TraceConfig><any>addITraceConfig(config)
       traceOutput = false
       traceObj = function (
         traceInclude : RegExp[], traceExclude : RegExp[], aStr : string
@@ -204,9 +207,7 @@ export class Grammars {
       }
     }
 
-    if (!config) config = addITraceConfig({})
-    
-    const aDoc = await DocumentCache.theDocumentCache.loadFromFile(aDocPath)
+    const aDoc = await DocumentCache.theDocumentCache.loadFromFile(aDocPath, config)
     const aBaseScope = this.chooseBaseScope(aDoc.filePath, aDoc.docLines[0])
     if (!aBaseScope) {
       logger.warn("WARNING: Could not find the base scope for the document")
@@ -233,7 +234,7 @@ export class Grammars {
       const scopes2run : Map<string, string[]> = new Map()
       const lineTokens = aGrammar.tokenizeLine(aLine, ruleStack)
       const showLine   = traceObj(
-        config.traceLinesInclude, config.traceLinesExclude, aLine
+        itConfig.traceLinesInclude, itConfig.traceLinesExclude, aLine
       )
       if (showLine) {
         logger.debug(`\nTokenizing line[${lineNum}]: >>${aLine}<< (${aLine.length})`);
@@ -247,7 +248,7 @@ export class Grammars {
         }
         for (const aScope of aToken.scopes) {
           const showScope  = traceObj(
-            config.traceScopesInclude, config.traceScopesExclude, aScope
+            itConfig.traceScopesInclude, itConfig.traceScopesExclude, aScope
           )
           if (showLine && showScope) logger.debug(`     ${aScope}`)
           if (scopesWithActions.has(aScope)) {
@@ -262,10 +263,10 @@ export class Grammars {
       if (scopes2run) {
         for (const [aScope, someTokens] of Object.entries(scopes2run)) {
           const showScope  = traceObj(
-            config.traceScopesInclude, config.traceScopesExclude, aScope
+            itConfig.traceScopesInclude, itConfig.traceScopesExclude, aScope
           )
           const showAction = traceObj(
-            config.traceActionsInclude, config.traceActionsExclude, aScope
+            itConfig.traceActionsInclude, itConfig.traceActionsExclude, aScope
           )
           if (showLine && showScope && showAction) {
             logger.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
@@ -283,8 +284,8 @@ export class Grammars {
           if (showLine && showScope && showAction) {
             for (const aStructureName of structureNames) {
               if (traceObj(
-                config.traceStructuresInclude,
-                config.traceStructuresExclude,
+                itConfig.traceStructuresInclude,
+                itConfig.traceStructuresExclude,
                 aStructureName
               )) {
                   Structures.theStructures.logStructure(aStructureName)
@@ -306,7 +307,7 @@ export class Grammars {
    * @returns A Promise which when fulfilled means that the indicated text-mate
    * grammar has been loaded.
    */
-  async loadGrammarFrom(aGrammarPath : string) {
+  async loadGrammarFrom<Config extends BaseConfig>(aGrammarPath : string, config : Config) {
     console.log(`>>> loading grammar from ${aGrammarPath}`)
     var aGrammar : vsctmTypes.IRawGrammar
     
@@ -315,7 +316,7 @@ export class Grammars {
         logger.trace(`Warning you have already loaded ${aGrammarPath}`)
         return
       }
-      aGrammarPath = Cfgr.normalizePath(aGrammarPath)
+      aGrammarPath = config.normalizePath(aGrammarPath)
       if (this.loadedGrammars.has(aGrammarPath)) {
         logger.trace(`Warning you have already loaded ${aGrammarPath}`)
         return

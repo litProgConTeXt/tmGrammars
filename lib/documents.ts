@@ -10,7 +10,7 @@ import * as fsp  from "fs/promises"
 import * as path from "path"
 import * as yaml from "yaml"
 
-import { Cfgr                 } from "./cfgrHelpers.js"
+import { BaseConfig as Config } from "./configBase.js"
 import { Logging, ValidLogger } from "./logging.js"
 
 const logger : ValidLogger = Logging.getLogger('lpic')
@@ -51,9 +51,9 @@ export class Document {
    * 
    * @param aPath - A path to the file
    */
-  async loadFromFile(aPath: string) {
+  async loadFromFile(aPath: string, config : Config) {
     logger.debug(`loading document from ${aPath}`)
-    this.filePath = Cfgr.normalizePath(aPath)
+    this.filePath = config.normalizePath(aPath)
     const aDocStr = await fsp.readFile(this.filePath, "utf8")
     this.refreshFromStr(aPath, aDocStr)
   }
@@ -94,9 +94,9 @@ export class DocumentCache {
    * @returns A Promise which when fulfilled, returns the loaded Document or
    * undefined if the document could not be loaded.
    */
-  async loadFromFile(aPath:string) {
+  async loadFromFile(aPath:string, config : Config) {
     const doc = new Document()
-    await doc.loadFromFile(aPath)
+    await doc.loadFromFile(aPath, config)
     this.documents.set(aPath, doc)
     return doc
   }
