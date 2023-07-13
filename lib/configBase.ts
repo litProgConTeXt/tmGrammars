@@ -27,6 +27,7 @@ import { ConsoleLogger                } from "./logging.js"
 const cfgr = new CfgrCollector()
 
 // The base configuration class
+@cfgr.klass()
 export class BaseConfig extends IConfig {
 
   // Does nothing... do not use

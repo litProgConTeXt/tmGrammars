@@ -36,7 +36,8 @@ import   * as yaml                   from 'yaml'
 import { 
   SString,
   CommanderOptions,
-  IConfig
+  IConfig,
+  IConfigConstructor
 }                                      from "./cfgrCollector.js"
 import { Logging, ValidLogger       } from "./logging.js"
 
@@ -73,8 +74,8 @@ export class CfgrHelpers {
    *
    * @category Configuration Files
    */
-  static loadConfigFromDict(
-    aConfigInstance : IConfig, // a configuration instance
+  static loadConfigFromDict<Config extends IConfig>(
+    aConfigInstance : Config, // a configuration instance
     baseConfigPath : string,
     aConfigDict : any
   ) {
@@ -366,12 +367,20 @@ export class CfgrHelpers {
    * Assemble a configuration instance from a collection of configuration
    * classes.
    */
-  static assembleConfigFrom(...configKlasses : Array<any>) : IConfig {
+  static assembleConfigFrom(
+    ...configKlasses : Array<IConfigConstructor>
+  ) : IConfig {
     const config = new IConfig()
     const aCfgAny = <any>config
     const constructors : Function[] = []
-    configKlasses.forEach(function(aKlass : any) {
-      const anInstance = new aKlass()
+    configKlasses.forEach(function(aKlass : IConfigConstructor) {
+      
+      const aKlassInstance = new aKlass()
+      aCfgAny[aKlass.name] = function() : typeof aKlassInstance {
+        return <typeof aKlassInstance>this
+      }
+
+      const anInstance = <any>aKlassInstance
       for (var attrName in anInstance) {
         if (!aCfgAny[attrName]) {
           aCfgAny[attrName] = anInstance[attrName]
@@ -389,3 +398,9 @@ export class CfgrHelpers {
     return config
   }
 }
+
+/*
+  [aKlass.name]() : aKlass {
+    return <aKlass>this
+  }
+*/

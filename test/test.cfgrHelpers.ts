@@ -23,7 +23,7 @@ import {
 }                      from '../lib/cfgrCollector.js'
 import { CfgrHelpers } from '../lib/cfgrHelpers.js'
 
-const cfgr = new CfgrCollector()
+var cfgr = new CfgrCollector()
 
 // The base configuration class
 @cfgr.klass()
@@ -105,6 +105,29 @@ export class BaseConfig extends IConfig{
   initialFiles : string[] = []
 }
 
+cfgr = new CfgrCollector()
+
+@cfgr.klass()
+class BuildConfig extends IConfig {
+
+  // Does nothing... do not use
+  constructor() {super()}
+
+  /**
+   * Run all scoped actions in parallel. (Default: false)
+   * 
+   * - **configPath:** parallel
+   * - **cli:** -p, --parallel
+   */
+  @cfgr.cliOption(
+    'test',
+    '-t, --test',
+    'Test',
+    undefined
+  )
+  test : boolean = false
+}
+
 const testYaml = `
 configPaths: 
   - cTestA
@@ -141,7 +164,7 @@ describe('Cfgr', function() {
   
   describe('#loadConfigFromDict', function () {
     it('should load configuration from a dictionary', function () {
-      var config = <BaseConfig>CfgrHelpers.assembleConfigFrom(BaseConfig)
+      var config = new BaseConfig()
       expect(config).is.not.undefined
       expect(config.configPaths).is.instanceof(Array)
       expect(config.configPaths.length).is.equal(0)
@@ -240,6 +263,32 @@ describe('Cfgr', function() {
       expect(config.initialFiles).is.instanceof(Array)
       expect(config.initialFiles.length).is.equal(2)
       expect(config.initialFiles[1]).is.equal("testB1")
+    })
+  })
+
+  describe('#assembleConfigFrom', function () {
+    it('should assemble a configuration from a collection of mixins', function () {
+      var config = <BaseConfig>CfgrHelpers.assembleConfigFrom(
+        BaseConfig, BuildConfig
+      )
+      expect(config).is.not.undefined
+      expect(config.configPaths).is.instanceof(Array)
+      expect(config.configPaths.length).is.equal(0)
+      expect(config.parallel).is.false
+      expect(config.logLevel).is.equal("info")
+      expect(config.pathPrefix).is.equal("")
+      expect(config.initialFiles).is.instanceof(Array)
+      expect(config.initialFiles.length).is.equal(0)
+      expect(config.implements("BaseConfig")).is.true
+      expect(config.implements(BaseConfig)).is.true
+      expect(config.implements("TestBaseConfig")).is.false
+      expect(config.implements(console.log)).is.false
+      expect(config.implements(console)).is.false
+      expect(config.implements("BuildConfig")).is.true
+      expect(config.implements(BuildConfig)).is.true
+      expect(config).respondTo("BaseConfig")
+      expect(config).respondTo("BuildConfig")
+      expect(config).does.not.respondTo("NoConfig")
     })
   })
   

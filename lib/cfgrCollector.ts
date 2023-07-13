@@ -117,6 +117,7 @@ export class CommanderOptions {
 export type SString = string | symbol
 
 export class IConfig {
+  _mixins                : Array<string>
   _key2fieldMapping      : Map<string, string>
   _defaultStringsMapping : Map<SString, string>
   _cliOptions            : Array<CommanderOptions>
@@ -124,10 +125,20 @@ export class IConfig {
 
   constructor() {
     const pAny = Object.getPrototypeOf(this)
-    this._key2fieldMapping      = pAny._key2fieldMapping
-    this._defaultStringsMapping = pAny._defaultStringsMapping
-    this._cliOptions            = pAny._cliOptions
-    this._cliOpt2fieldMapping   = pAny._cliOpt2fieldMapping
+    this._mixins                = pAny._mixins                || []
+    this._key2fieldMapping      = pAny._key2fieldMapping      || new Map()
+    this._defaultStringsMapping = pAny._defaultStringsMapping || new Map()
+    this._cliOptions            = pAny._cliOptions            || []
+    this._cliOpt2fieldMapping   = pAny._cliOpt2fieldMapping   || new Map()
+  }
+
+  implements(aType : any) : boolean {
+    if (typeof aType === 'string') {
+      if (this._mixins.includes(aType)) return true
+    } else if (typeof aType === 'function') {
+      if (this._mixins.includes(aType.name)) return true
+    }
+    return false
   }
 
   pathPrefix : string = ""
@@ -145,41 +156,43 @@ export class IConfig {
    * @category Path Normalization
    */
   normalizePath(aPath : string) {
-      var pathPrefix = process.cwd()
-      if (this.pathPrefix && (0 < this.pathPrefix.length))
-        pathPrefix = this.pathPrefix
+    var pathPrefix = process.cwd()
+    if (this.pathPrefix && (0 < this.pathPrefix.length))
+      pathPrefix = this.pathPrefix
     
-      if (aPath.startsWith('~')) {
-        // load from a home directory
-        pathPrefix = os.homedir()
-        if (!aPath.startsWith('~/') && !aPath.startsWith('~\\') && aPath !== '~') {
-          pathPrefix = path.dirname(pathPrefix)
-        }  
-        aPath = aPath.replace(/^~/, '')
-      //} else if (aPath.startsWith('@')) {
-      //  // load from node_modules....
-      //  pathPrefix = path.dirname(__filename)
-      //  while ( pathPrefix && !pathPrefix.endsWith('node_modules')) {
-      //    pathPrefix = path.dirname(pathPrefix)
-      //  }
-      //  aPath = aPath.replace(/^@/, '')
-      //} else if (aPath.startsWith('$')) {
-      //  // load from this repository...
-      //  pathPrefix = path.dirname(__filename)
-      //  while ( pathPrefix && !pathPrefix.endsWith('node_modules')) {
-      //    pathPrefix = path.dirname(pathPrefix)
-      //  }
-      //  pathPrefix = path.dirname(pathPrefix)
-      //  aPath = aPath.replace(/^\$/, '')
+    if (aPath.startsWith('~')) {
+      // load from a home directory
+      pathPrefix = os.homedir()
+      if (!aPath.startsWith('~/') && !aPath.startsWith('~\\') && aPath !== '~') {
+        pathPrefix = path.dirname(pathPrefix)
       }  
-      aPath = path.join(
-        pathPrefix,
-        aPath
-      )  
-      return path.normalize(aPath)
+      aPath = aPath.replace(/^~/, '')
+    //} else if (aPath.startsWith('@')) {
+    //  // load from node_modules....
+    //  pathPrefix = path.dirname(__filename)
+    //  while ( pathPrefix && !pathPrefix.endsWith('node_modules')) {
+    //    pathPrefix = path.dirname(pathPrefix)
+    //  }
+    //  aPath = aPath.replace(/^@/, '')
+    //} else if (aPath.startsWith('$')) {
+    //  // load from this repository...
+    //  pathPrefix = path.dirname(__filename)
+    //  while ( pathPrefix && !pathPrefix.endsWith('node_modules')) {
+    //    pathPrefix = path.dirname(pathPrefix)
+    //  }
+    //  pathPrefix = path.dirname(pathPrefix)
+    //  aPath = aPath.replace(/^\$/, '')
     }  
-  
+    aPath = path.join(
+      pathPrefix,
+      aPath
+    )  
+    return path.normalize(aPath)
+  }  
 }
+
+// see: https://www.simonholywell.com/post/typescript-constructor-type.html
+export type IConfigConstructor<Config extends IConfig = IConfig> = new () => Config
 
 export class CfgrCollector {
 
@@ -353,12 +366,19 @@ export class CfgrCollector {
 
   /**
    * A **decorator** which marks a class as part of the typed configuration.
-   * 
+   *
+   * **NOTE**: we require the use of a decorator *factory* so that we can access
+   * the CfgrCollector instance variables (using `self`)
+   *
    * @category Typed Classes
    */
-  klass (/*pathArray : Array<string>*/) {
+  klass () {
     const self = this
-    return function decorator(value : Function, context : ClassDecoratorContext) {
+    return function decorator(
+      value : Function,
+      context : ClassDecoratorContext
+    ) {
+      value.prototype._mixins                = [ context.name ]
       value.prototype._key2fieldMapping      = self.key2fieldMapping
       value.prototype._defaultStringsMapping = self.defaultStringsMapping
       value.prototype._cliOptions            = self.cliOptions
