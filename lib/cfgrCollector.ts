@@ -1,8 +1,7 @@
 import * as os   from "os"
 import * as path from "path"
-import * as yaml from "yaml"
 
-import { Logging, ValidLogger       } from "./logging.js"
+import { Logging, ValidLogger } from "./logging.js"
 
 const logger : ValidLogger = Logging.getLogger('lpic')
 
@@ -221,12 +220,12 @@ export class CfgrCollector {
   key2fieldMapping : Map<string, string> = new Map()
 
   /**
-   * Stringify (using YAML) the key to field mapping.
+   * Stringify (using Logging) the key to field mapping.
    * 
    * @category Configuration Files
    */
   stringifyKey2field() {
-    return yaml.stringify(this.key2fieldMapping)
+    return Logging.stringify(this.key2fieldMapping)
   }
 
   /**
@@ -311,7 +310,7 @@ export class CfgrCollector {
    * @category Command Line Options
    */
   stringifyCliOptions() {
-    return yaml.stringify(this.cliOptions)
+    return Logging.stringify(this.cliOptions)
   }
 
   /**

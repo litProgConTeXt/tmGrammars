@@ -22,7 +22,6 @@ import * as fsp       from "fs/promises"
 import * as path      from "path"
 import * as vsctm     from "vscode-textmate"
 import * as oniguruma from "vscode-oniguruma"
-import * as yaml      from "yaml"
 
 import { IConfig                       } from "./cfgrCollector.js"
 import { TraceConfig                   } from "./configTrace.js"
@@ -69,7 +68,7 @@ export class Grammars {
     
     try {
       // try to find onig.wasm assuming we are in the development setup
-      console.log(path.dirname(__filename))
+      logger.trace(`this module dir: [${path.dirname(__filename)}]`)
       this._wasmBin = await fsp.readFile(
         path.join(
             path.dirname(__filename),
@@ -276,7 +275,7 @@ export class Grammars {
             logger.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             if (showLine && showScope) {
               logger.debug(`${aScope} :`)
-              logger.debug(yaml.stringify(someTokens))
+              logger.debug(someTokens)
             }
           }
           const someActions = scopesWithActions.get(aScope)
@@ -312,7 +311,7 @@ export class Grammars {
    * grammar has been loaded.
    */
   async loadGrammarFrom(aGrammarPath : string, config : IConfig) {
-    console.log(`>>> loading grammar from ${aGrammarPath}`)
+    logger.trace(`>>> loading grammar from ${aGrammarPath}`)
     var aGrammar : vsctmTypes.IRawGrammar
     
     if (aGrammarPath.endsWith('.json')) {
@@ -335,20 +334,20 @@ export class Grammars {
       return
     }
     if (aGrammar.scopeName) {
-      console.log(`>>> scope name ${aGrammar.scopeName}`)
+      logger.trace(`>>> scope name ${aGrammar.scopeName}`)
       const baseScope = aGrammar['scopeName']
       if (this.originalScope2grammar.has(baseScope)) {
         logger.warn(`WARNING: you are over-writing an existing ${baseScope} grammar`)
       }
       this.originalScope2grammar.set(baseScope, aGrammar)
     } else {
-      console.log(">>> NO scope name")
+      logger.warn(">>> NO scope name")
     }
-    console.log(this.originalScope2grammar)
+    logger.trace(this.originalScope2grammar)
     for (const [aScope, aGrammar] of this.originalScope2grammar.entries()) {
       this.scope2grammar.set(aScope, deepcopy(aGrammar))
     }
-    console.log(this.scope2grammar)
+    logger.trace(this.scope2grammar)
   }
 
   // Get all known scopes defined by the loaded grammars.
@@ -402,7 +401,7 @@ export class Grammars {
     console.log("--grammar----------------------------------------------------")
     console.log(aBaseScope)
     console.log("---------------")
-    console.log(yaml.stringify(this.scope2grammar.get(aBaseScope)))
+    console.log(this.scope2grammar.get(aBaseScope))
   }
 
   // Print all loaded grammars

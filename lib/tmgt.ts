@@ -7,9 +7,6 @@
  * @module
  */
 
-
-import * as yaml from "yaml"
-
 // The following two lines MUST be run befor ANY other lpic-modules
 import { Logging, ValidLogger     } from "./logging.js"
 const logger : ValidLogger = Logging.getLogger('lpic')

@@ -8,16 +8,29 @@
 
 import fs from "fs"
 
-import      deepcopy  from 'deepcopy'
 import * as os        from 'os'
 import * as process   from 'process'
-import * as yaml      from 'yaml'
+import * as util      from 'util'
 
 // The type of all valid Loggers (ConsoleLobber, NoOpLogger, FileLogger)
 export type ValidLogger = ConsoleLogger | NoOpLogger | FileLogger
 
 // The type of a ValidLogger or (possibly) undefined
 export type MaybeLogger = ValidLogger | undefined
+
+function stringify(anObj : any) : string {
+  var inspectLevel : number = 2
+  if (process.env.LPIC_LOG_DEPTH) {
+    inspectLevel = Number(process.env.LPIC_LOG_DEPTH)
+  }
+  return util.inspect(anObj, {depth:inspectLevel})
+}
+
+// Fix for JSON.stringify trying to stringify a BitInt
+// fix see: https://github.com/GoogleChromeLabs/jsbi/issues/30#issuecomment-1006088574
+(<any>BigInt).prototype["toJSON"] = function () {
+  return this.toString();
+};
 
 /**
  * We implement a simple Pino like logger
@@ -44,6 +57,9 @@ export class ConsoleLogger {
 
   // The logName
   readonly logName : string = "lpic"
+
+  // How deep should the util.inspect dump an object?
+  inspectLevel : number = 2
 
   /**
    * Construct a ConsoleLogger by setting defaults.
@@ -142,6 +158,11 @@ export class FileLogger extends ConsoleLogger {
    */
   constructor(logName: string) {
     super(logName)
+
+    if (process.env.LPIC_LOG_DEPTH) {
+      this.inspectLevel = Number(process.env.LPIC_LOG_DEPTH)
+    }
+
     var logFilePath : string | undefined = process.env.LPIC_LOG_FILE
     if (!logFilePath) {
 
@@ -189,11 +210,20 @@ export class FileLogger extends ConsoleLogger {
    * @param theArguments - the collection of Pino log arguments
    */
   log(logLevel: number, theArguments: object) {
+    if (Logging.ERROR <= logLevel) {
+     console.log("---ERROR----------------------------------------------------")
+     console.log(theArguments)
+     console.log("------------------------------------------------------------")
+    }
     var logJson : any = { }
     if (theArguments instanceof Array) {
       for (const [key, value] of Object.entries(theArguments)) {
-        if (key === "0") logJson["msg"] = value
-        else             logJson[key]   = value
+        if (key === "0") logJson["msg"] = util.inspect(
+          value, {depth: this.inspectLevel}
+        )
+        else             logJson[key]   = util.inspect(
+          value, {depth: this.inspectLevel}
+        )
       }
     } else {
       logJson["msg"] = theArguments
@@ -335,4 +365,6 @@ export class Logging {
     if (Logging.theLogger) Logging.theLogger.close()
     delete Logging.theLogger
   }
+
+  static stringify = stringify
 }

@@ -7,8 +7,6 @@
  */
 
 import * as fsp  from "fs/promises"
-import * as path from "path"
-import * as yaml from "yaml"
 
 import { IConfig              } from "./cfgrCollector.js"
 import { Logging, ValidLogger } from "./logging.js"

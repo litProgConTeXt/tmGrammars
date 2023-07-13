@@ -11,8 +11,6 @@
  * @module
  */
 
-import * as yaml from 'yaml'
-
 import { IConfig, CfgrCollector, appendStrArg  } from "./cfgrCollector.js"
 
 const cfgr = new CfgrCollector()

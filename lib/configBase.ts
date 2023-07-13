@@ -15,8 +15,6 @@
  * @module
  */
 
-import * as yaml from 'yaml'
-
 import { 
   IConfig,
   CfgrCollector,

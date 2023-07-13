@@ -13,8 +13,6 @@
  * @module
  */
 
-import * as yaml from "yaml"
-
 import { Logging, ValidLogger } from "./logging.js"
 
 const logger : ValidLogger = Logging.getLogger('lpic')
@@ -67,8 +65,8 @@ export class Structures {
   }
 
   /**
-   * Stringify the given structure (using YAML) and log it at the `debug` level
-   * using the logger for this tool.
+   * Stringify the given structure (using Logging) and log it at the `debug`
+   * level using the logger for this tool.
    *
    * @param aStructureName - the name of the structure to log
    */
@@ -77,10 +75,10 @@ export class Structures {
     logger.debug("--structure--------------------------------------------------")
     logger.debug(aStructureName)
     logger.debug("-------------------------")
-    logger.debug(yaml.stringify(this.structs.get(aStructureName)))
+    logger.debug(this.structs.get(aStructureName))
   }
 
-  // Stringify all known structures (using YAML) and log the result at the
+  // Stringify all known structures (using Logging) and log the result at the
   // `debug` level using the logger for this tool.
   logAllStructures() {
     for (const aStructureName of Object.keys(this.structs).sort()) {
@@ -89,7 +87,8 @@ export class Structures {
   }
 
   /**
-   * Stringified the given structure (using YAML) and send it to the console.log
+   * Stringified the given structure (using Logging) and send it to the
+   * console.log
    *
    * @param aStructureName - the name of the structure to send to the console
    */
@@ -98,7 +97,7 @@ export class Structures {
     console.log("--structure--------------------------------------------------")
     console.log(aStructureName)
     console.log("-------------------------")
-    console.log(yaml.stringify(this.structs.get(aStructureName)))
+    console.log(this.structs.get(aStructureName))
   }
 
   // Stringify all known structures (using YAML) and send the result to the

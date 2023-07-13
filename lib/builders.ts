@@ -9,7 +9,6 @@
 
 import * as fsp  from "fs/promises"
 import * as path from "path"
-import * as yaml from "yaml"
 
 import { IConfig                 } from "./cfgrCollector.js"
 import { Document, DocumentCache } from "./documents.js"

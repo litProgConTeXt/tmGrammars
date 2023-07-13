@@ -95,7 +95,7 @@ export class CfgrHelpers {
       // ignore!
     } else if (typeof aConfigDict === "object") {
       logger.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-      logger.debug(yaml.stringify(aConfigDict))
+      logger.debug(aConfigDict)
       logger.debug("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
       Object.keys(aConfigDict).forEach(function(aKey: string | symbol){
         CfgrHelpers.loadConfigFromDict(
@@ -148,7 +148,7 @@ export class CfgrHelpers {
       CfgrHelpers.loadConfigFromDict(aConfigInstance, "", fileConfig)
     }
     logger.debug("---------------")
-    logger.debug(yaml.stringify(aConfigInstance))
+    logger.debug(aConfigInstance)
     logger.debug("---------------")
   }
 
@@ -176,11 +176,11 @@ export class CfgrHelpers {
       aCfgAny['configPaths'] = []
     }
     aCfgAny['configPaths'].push(...configPaths)
-    logger.debug(yaml.stringify(aConfigInstance))
+    logger.debug(aConfigInstance)
     var morePaths : boolean = true
     while (morePaths) {
       logger.debug("Checking for next config path")
-      logger.debug(yaml.stringify(loadedPaths))
+      logger.debug(aConfigInstance)
       morePaths = false
       for (const aConfigPath of aCfgAny['configPaths']) {
         if (loadedPaths.includes(aConfigPath)) continue

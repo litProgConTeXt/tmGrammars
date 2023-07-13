@@ -4,8 +4,6 @@
  * @module
  */
 
-import * as yaml from "yaml"
-
 import { IConfig               } from "./cfgrCollector.js"
 import { CfgrHelpers           } from "./cfgrHelpers.js"
 import { BaseConfig            } from "./configBase.js"
@@ -45,7 +43,7 @@ export async function setupTMGTool<Config extends IConfig>(
   await CfgrHelpers.loadConfigFiles(config, [])
   
   logger.debug("--------------------------------------------------------------")
-  logger.debug(yaml.stringify(config))
+  logger.debug(config)
   logger.debug("--------------------------------------------------------------")
 
   if (!config.implements(BaseConfig)) return config
@@ -116,7 +114,7 @@ export function loadRunner(config : IConfig) {
   
   if (verbose) {
     console.log("\n--config---------------------------------------------------")
-    console.log(yaml.stringify(config))
+    console.log(config)
     console.log("-----------------------------------------------------------")
   }
   
