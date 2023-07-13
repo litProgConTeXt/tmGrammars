@@ -117,6 +117,16 @@ export class CommanderOptions {
 export type SString = string | symbol
 
 export class IConfig {
+
+  static clearMetaData(config : IConfigConstructor) {
+    const pAny = config.prototype
+    // keep the pAny._mixins unchanged
+    pAny._key2fieldMapping      = new Map()
+    pAny._defaultStringsMapping = new Map()
+    pAny._cliOptions            = []
+    pAny._cliOpt2fieldMapping   = new Map()
+  }
+
   _mixins                : Array<string>
   _key2fieldMapping      : Map<string, string>
   _defaultStringsMapping : Map<SString, string>

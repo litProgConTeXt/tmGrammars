@@ -11,8 +11,7 @@ import * as fsp  from "fs/promises"
 import * as path from "path"
 import * as yaml from "yaml"
 
-import { CfgrHelpers             } from "./cfgrHelpers.js"
-import { BaseConfig as Config    } from "./configBase.js"
+import { IConfig                 } from "./cfgrCollector.js"
 import { Document, DocumentCache } from "./documents.js"
 import { Grammars                } from "./grammars.js"
 import { ScopeActions            } from "./scopeActions.js"
@@ -88,7 +87,7 @@ class Builder {
 }
 
 export type RegisterBuildersFunction = (
-  config        : Config,
+  config        : IConfig,
   builders      : Builders,
   documentCache : DocumentCache,
   grammars      : Grammars,
@@ -168,7 +167,7 @@ export class Builders {
    * builders which are registered with the Builders module using the
    * `registerBuilders` method.
    */
-  async loadBuildersFrom(aDir : string, config : Config) {
+  async loadBuildersFrom(aDir : string, config : IConfig) {
     logger.debug(`loading builders from ${aDir}`)
     aDir = config.normalizePath(aDir)
      if (this.loadedBuilderDirs.has(aDir)) return

@@ -14,8 +14,10 @@ import * as yaml from "yaml"
 import { Logging, ValidLogger     } from "./logging.js"
 const logger : ValidLogger = Logging.getLogger('lpic')
 
+import { CfgrHelpers              } from "./cfgrHelpers.js"
 import { BaseConfig               } from "./configBase.js"
-import { TraceConfig as Config    } from "./configTrace.js"
+import { BuildConfig              } from "./configBuild.js"
+import { TraceConfig              } from "./configTrace.js"
 import { Builders                 } from "./builders.js"
 import { Grammars                 } from "./grammars.js"
 import { ScopeActions             } from "./scopeActions.js"
@@ -23,29 +25,44 @@ import { Structures               } from "./structures.js"
 import { setupTMGTool, runTMGTool } from "./runner.js"
 
 async function runTool() {
-  const config : Config = await <Config>(<unknown>setupTMGTool(
-    'tmgt', 'CLI to manipulate textmate grammars', '0.0.1', Config
-  ))
+
+  // We could clear the TraceConfig configuration meta-data as follows:
+  //
+  // IConfig.clearMetaData(TraceConfig)
+  //
+  // If this meta-data is cleared then all TraceConfig configuration will be
+  // ignored... BUT anything assembled from TraceConfig will respond to the
+  // TraceConfig interface.
+  //
+  const config = CfgrHelpers.assembleConfigFrom(
+    BaseConfig, BuildConfig, TraceConfig
+  )
+  
+  await setupTMGTool(
+    'tmgt', 'CLI to manipulate textmate grammars', '0.0.1', config
+  )
+
+  const tConfig = <TraceConfig>config
 
   //loadRunner(config) 
 
-  if (config.showActions) {
+  if (tConfig.showActions) {
     ScopeActions.theScopeActions.printActions()
     process.exit(0)
   }
 
-  if (config.showBuilders) {
+  if (tConfig.showBuilders) {
     Builders.theBuilders.printBuilders()
     process.exit(0)
   }
 
-  if (config.showAllGrammars) {
+  if (tConfig.showAllGrammars) {
     Grammars.theGrammars.printAllGrammars()
     process.exit(0)
   }
 
-  if (0 < config.showGrammars.length) {
-    for (const aBaseScope of config.showGrammars) {
+  if (0 < tConfig.showGrammars.length) {
+    for (const aBaseScope of tConfig.showGrammars) {
       Grammars.theGrammars.printGrammar(aBaseScope)
     }
     process.exit(0)

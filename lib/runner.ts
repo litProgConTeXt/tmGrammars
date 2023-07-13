@@ -6,6 +6,7 @@
 
 import * as yaml from "yaml"
 
+import { IConfig               } from "./cfgrCollector.js"
 import { CfgrHelpers           } from "./cfgrHelpers.js"
 import { BaseConfig            } from "./configBase.js"
 import { Builders              } from "./builders.js"
@@ -26,52 +27,55 @@ const logger : ValidLogger = Logging.getLogger('lpic')
  * @param configClass - the *class* of the configuration class for instantiation
  * @returns the fully configured configuration instance
  */
-export async function setupTMGTool(
+export async function setupTMGTool<Config extends IConfig>(
   progName    : string,
   progDesc    : string,
   progVersion : string,
-  configClass : any
+  config      : Config
 ) : Promise<any> {
 
   console.log(`Logger       level: ${logger.level}`)
   console.log(`Logger logFilePath: ${logger.logFilePath}`)
 
-  var config : BaseConfig = <BaseConfig> new configClass()
+  
   var context : Map<string, string> = new Map()
   context.set('configBaseName', progName)
   CfgrHelpers.updateDefaults(config, context)
   CfgrHelpers.parseCliOptions(config, progName, progDesc, progVersion)
   await CfgrHelpers.loadConfigFiles(config, [])
-
+  
   logger.debug("--------------------------------------------------------------")
   logger.debug(yaml.stringify(config))
   logger.debug("--------------------------------------------------------------")
 
-  if (config.loadActions && 0 < config.loadActions.length) {
+  if (!config.implements(BaseConfig)) return config
+  
+  var bConfig : BaseConfig = <BaseConfig><any>config  // trust me!
+  if (bConfig.loadActions && 0 < bConfig.loadActions.length) {
     logger.debug("\n--loading actions----------------------------------------")
-    await Promise.all(config.loadActions.map( async (anActionsPath : string) => {
+    await Promise.all(bConfig.loadActions.map( async (anActionsPath : string) => {
       logger.debug(`starting to load actions from [${anActionsPath}]`)
-      await ScopeActions.theScopeActions.loadActionsFrom(anActionsPath, config)
+      await ScopeActions.theScopeActions.loadActionsFrom(anActionsPath, bConfig)
       logger.debug(`finished loading actions from [${anActionsPath}]`)
     }))
     logger.debug("---------------------------------------------------------")
   }
   
-  if (config.loadBuilders && 0 < config.loadBuilders.length) {
+  if (bConfig.loadBuilders && 0 < bConfig.loadBuilders.length) {
     logger.debug("\n--loading builders---------------------------------------")
-    await Promise.all(config.loadBuilders.map( async (aBuildersPath : string) => {
+    await Promise.all(bConfig.loadBuilders.map( async (aBuildersPath : string) => {
       logger.debug(`starting to load builders from [${aBuildersPath}]`)
-      await Builders.theBuilders.loadBuildersFrom(aBuildersPath, config)
+      await Builders.theBuilders.loadBuildersFrom(aBuildersPath, bConfig)
       logger.debug(`finished loading builders from [${aBuildersPath}]`)
     }))
     logger.debug("---------------------------------------------------------")
   }
 
-  if (config.loadGrammars && 0 < config.loadGrammars.length) {
+  if (bConfig.loadGrammars && 0 < bConfig.loadGrammars.length) {
     logger.debug("\n--loading grammars---------------------------------------")
-    await Promise.all(config.loadGrammars.map( async (aGrammarPath : string) => {
+    await Promise.all(bConfig.loadGrammars.map( async (aGrammarPath : string) => {
       logger.debug(`starting to load grammar from [${aGrammarPath}]`)
-      await Grammars.theGrammars.loadGrammarFrom(aGrammarPath, config)
+      await Grammars.theGrammars.loadGrammarFrom(aGrammarPath, bConfig)
       logger.debug(`finished loading grammar from [${aGrammarPath}]`)
     }))     
     logger.debug("---------------------------------------------------------")
@@ -81,7 +85,7 @@ export async function setupTMGTool(
 }  
 
 
-export function loadRunner<Config extends BaseConfig>(config : Config) {
+export function loadRunner(config : IConfig) {
   /*
   ////////////////////////////////////////////////////////////////////////////
   // remove pathPrefix from the remaining command line arguments
@@ -158,22 +162,26 @@ export function loadRunner<Config extends BaseConfig>(config : Config) {
  * @returns a Promise which when fulfilled means that the tool has run
  * successfully.
  */
-export async function runTMGTool<Config extends BaseConfig>(config : Config ) {
+export async function runTMGTool(config : IConfig ) {
 
-  if (config.initialFiles.length < 1) {
+  if (!config.implements(BaseConfig)) return
+
+  const bConfig = <BaseConfig>config
+
+  if (bConfig.initialFiles.length < 1) {
     console.log("No document specified to trace while parsing")
     process.exit(0)
   }
 
   await ScopeActions.theScopeActions.runActionsStartingWith(
-    'initialize', 'lpic', [], 0, undefined, config.parallel
+    'initialize', 'lpic', [], 0, undefined, bConfig.parallel
   )
 
   await ScopeActions.theScopeActions.runActionsStartingWith(
-    'run', 'lpic', config.initialFiles, 0, undefined, config.parallel
+    'run', 'lpic', bConfig.initialFiles, 0, undefined, bConfig.parallel
   )
 
   await ScopeActions.theScopeActions.runActionsStartingWith(
-    'finalize', 'lpic', [], 0, undefined, config.parallel
+    'finalize', 'lpic', [], 0, undefined, bConfig.parallel
   )
 }

@@ -24,8 +24,7 @@ import * as vsctm     from "vscode-textmate"
 import * as oniguruma from "vscode-oniguruma"
 import * as yaml      from "yaml"
 
-import { BaseConfig                    } from "./configBase.js"
-import { ITraceConfig, addITraceConfig } from "./configITrace.js"
+import { IConfig                       } from "./cfgrCollector.js"
 import { TraceConfig                   } from "./configTrace.js"
 import { DocumentCache                 } from "./documents.js"
 import { ScopeActions                  } from "./scopeActions.js"
@@ -167,13 +166,26 @@ export class Grammars {
    * while parsing. The triggered actions normally store any data extracted from
    * the document in various named Structures in the Structures module.
    */
-  async traceParseOf<Config extends BaseConfig>(aDocPath : string, config : Config) {
-    var traceObj
-    var traceOutput
+  async traceParseOf( aDocPath : string, config : IConfig ) {
+    if (!config.implements(TraceConfig)) return
+
     const aCfgAny = <any>config
-    var itConfig : TraceConfig = <TraceConfig>aCfgAny
-    if ('traceLinesInclude' in config) {
-      traceOutput = true
+    var tConfig  = <TraceConfig>aCfgAny
+
+    var traceObj = function (
+      traceInclude : RegExp[], traceExclude : RegExp[], aStr : string
+    ) { return false }
+
+    if (
+      tConfig.traceLinesInclude.length || 
+      tConfig.traceLinesExclude.length ||
+      tConfig.traceActionsInclude.length || 
+      tConfig.traceActionsExclude.length ||
+      tConfig.traceScopesInclude.length || 
+      tConfig.traceScopesExclude.length ||
+      tConfig.traceStructuresInclude.length || 
+      tConfig.traceStructuresExclude.length
+    ) {
       traceObj = function (
         traceInclude : RegExp[], traceExclude : RegExp[], aStr : string
       ) {
@@ -196,14 +208,6 @@ export class Grammars {
           return false
         }
         return true
-      }
-    } else {
-      itConfig = <TraceConfig><any>addITraceConfig(config)
-      traceOutput = false
-      traceObj = function (
-        traceInclude : RegExp[], traceExclude : RegExp[], aStr : string
-      ) {
-        return false
       }
     }
 
@@ -234,7 +238,7 @@ export class Grammars {
       const scopes2run : Map<string, string[]> = new Map()
       const lineTokens = aGrammar.tokenizeLine(aLine, ruleStack)
       const showLine   = traceObj(
-        itConfig.traceLinesInclude, itConfig.traceLinesExclude, aLine
+        tConfig.traceLinesInclude, tConfig.traceLinesExclude, aLine
       )
       if (showLine) {
         logger.debug(`\nTokenizing line[${lineNum}]: >>${aLine}<< (${aLine.length})`);
@@ -248,7 +252,7 @@ export class Grammars {
         }
         for (const aScope of aToken.scopes) {
           const showScope  = traceObj(
-            itConfig.traceScopesInclude, itConfig.traceScopesExclude, aScope
+            tConfig.traceScopesInclude, tConfig.traceScopesExclude, aScope
           )
           if (showLine && showScope) logger.debug(`     ${aScope}`)
           if (scopesWithActions.has(aScope)) {
@@ -263,10 +267,10 @@ export class Grammars {
       if (scopes2run) {
         for (const [aScope, someTokens] of Object.entries(scopes2run)) {
           const showScope  = traceObj(
-            itConfig.traceScopesInclude, itConfig.traceScopesExclude, aScope
+            tConfig.traceScopesInclude, tConfig.traceScopesExclude, aScope
           )
           const showAction = traceObj(
-            itConfig.traceActionsInclude, itConfig.traceActionsExclude, aScope
+            tConfig.traceActionsInclude, tConfig.traceActionsExclude, aScope
           )
           if (showLine && showScope && showAction) {
             logger.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
@@ -284,8 +288,8 @@ export class Grammars {
           if (showLine && showScope && showAction) {
             for (const aStructureName of structureNames) {
               if (traceObj(
-                itConfig.traceStructuresInclude,
-                itConfig.traceStructuresExclude,
+                tConfig.traceStructuresInclude,
+                tConfig.traceStructuresExclude,
                 aStructureName
               )) {
                   Structures.theStructures.logStructure(aStructureName)
@@ -307,7 +311,7 @@ export class Grammars {
    * @returns A Promise which when fulfilled means that the indicated text-mate
    * grammar has been loaded.
    */
-  async loadGrammarFrom<Config extends BaseConfig>(aGrammarPath : string, config : Config) {
+  async loadGrammarFrom(aGrammarPath : string, config : IConfig) {
     console.log(`>>> loading grammar from ${aGrammarPath}`)
     var aGrammar : vsctmTypes.IRawGrammar
     

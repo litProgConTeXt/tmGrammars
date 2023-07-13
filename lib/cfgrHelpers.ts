@@ -376,9 +376,6 @@ export class CfgrHelpers {
     configKlasses.forEach(function(aKlass : IConfigConstructor) {
       
       const aKlassInstance = new aKlass()
-      aCfgAny[aKlass.name] = function() : typeof aKlassInstance {
-        return <typeof aKlassInstance>this
-      }
 
       const anInstance = <any>aKlassInstance
       for (var attrName in anInstance) {

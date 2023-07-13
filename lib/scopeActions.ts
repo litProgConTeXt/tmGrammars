@@ -11,8 +11,8 @@ import * as fsp from "fs/promises"
 import * as path from "path"
 import * as yaml from "yaml"
 
+import { IConfig                 } from "./cfgrCollector.js"
 import { Builders                } from "./builders.js"
-import { BaseConfig as Config    } from "./configBase.js"
 import { Document, DocumentCache } from "./documents.js"
 import { Grammars                } from "./grammars.js"
 import { Structures              } from "./structures.js"
@@ -95,7 +95,7 @@ class ScopeAction {
 }
 
 export type RegisterScopeActionsFunction = (
-  config        : Config,
+  config        : IConfig,
   builders      : Builders,
   documentCache : DocumentCache,
   grammars      : Grammars,
@@ -172,7 +172,7 @@ export class ScopeActions {
    * scoped actions which are registered with the ScopedActions module using the
    * `registerActions` method.
    */
-  async loadActionsFrom(aDir : string, config : Config) {
+  async loadActionsFrom(aDir : string, config : IConfig) {
     logger.debug(`loading actions from ${aDir}`)
     aDir = config.normalizePath(aDir)
     if (this.loadedActionDirs.has(aDir)) return

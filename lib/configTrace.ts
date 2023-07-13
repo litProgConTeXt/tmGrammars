@@ -4,7 +4,7 @@
  * The ConfigClasses provide a collection of Type-Safe (TypeScript)
  * Configuration class for the LPiC projects.
  * 
- * This class extends the BaseConfig with configuration for:
+ * This class extends the IConfig with configuration for:
  * 
  *  - extensive tracing of the parsing and building processes
  * 
@@ -13,15 +13,15 @@
 
 import * as yaml from 'yaml'
 
-import { CfgrCollector, appendStrArg, appendRegExpArg  } from "./cfgrCollector.js"
-import { BaseConfig                                    } from "./configBase.js"
-import { ITraceConfig                                  } from "./configITrace.js"
+import {
+  IConfig, CfgrCollector, appendStrArg, appendRegExpArg
+} from "./cfgrCollector.js"
 
 const cfgr = new CfgrCollector()
 
 // The configuration used by the `tmgt` TextMate Grammar Tracing tool.
 @cfgr.klass()
-export class TraceConfig extends BaseConfig implements ITraceConfig {
+export class TraceConfig extends IConfig {
 
   /**
    * Should the actions be listed? (Default: false)

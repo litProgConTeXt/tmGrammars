@@ -4,7 +4,7 @@
  * The ConfigClasses provide a collection of Type-Safe (TypeScript)
  * Configuration class for the LPiC projects.
  * 
- * This class extends the BaseConfig with configuration for:
+ * This class extends the IConfig with configuration for:
  * 
  *  - saving build artefacts
  *
@@ -13,15 +13,14 @@
 
 import * as yaml from 'yaml'
 
-import { CfgrCollector, appendStrArg  } from "./cfgrCollector.js"
-import { BaseConfig                   } from "./configBase.js"
+import { IConfig, CfgrCollector, appendStrArg  } from "./cfgrCollector.js"
 
 const cfgr = new CfgrCollector()
 
 // The configuration used by the LPiC-tool to extract source code from a LPiC
 // document.
 @cfgr.klass()
-export class BuildConfig extends BaseConfig {
+export class BuildConfig extends IConfig {
 
   /**
    * The directory into which all extracted source code should be put.
