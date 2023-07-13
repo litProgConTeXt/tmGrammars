@@ -197,7 +197,31 @@ export class IConfig {
       aPath
     )  
     return path.normalize(aPath)
-  }  
+  }
+
+  replaceTemplate(aTemplate : string) : string {
+    var aRegExp     = /\${?(\w+)}?/g
+    var templateAny = <any>aTemplate
+    var thisAny     = <any>this
+    var result      = aTemplate
+    if (aTemplate.includes("$")) {
+      result = templateAny.replaceAll(
+        aRegExp,
+        function(wholeMatch : string, mappingKey : string):string{
+          //console.log(`aTemplate: [${aTemplate}]`)
+          //console.log(`wholeMatch: [${wholeMatch}]`)
+          //console.log(`mappingKey: [${mappingKey}]`)
+          var replaceResult = wholeMatch
+          if (thisAny[mappingKey]) {
+            var aValue = thisAny[mappingKey]
+            if (aValue) replaceResult = String(aValue)
+          }
+          return replaceResult
+        }
+      )
+    }
+    return result
+  }
 }
 
 // see: https://www.simonholywell.com/post/typescript-constructor-type.html

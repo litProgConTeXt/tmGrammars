@@ -115,7 +115,6 @@ describe('CfgrCollector', function() {
       expect(pAny).has.property('_key2fieldMapping')
       expect(pAny._key2fieldMapping.size).is.not.equal(0)
       IConfig.clearMetaData(BaseConfig)
-      console.log(pAny)
       expect(pAny).has.property('_mixins')
       expect(pAny._mixins).eql(["BaseConfig"])
       expect(pAny).has.property('_key2fieldMapping')
@@ -125,6 +124,24 @@ describe('CfgrCollector', function() {
 
   describe('#normalizePath', function() {
     it('should normalize paths', function() {
+    })
+  })
+
+  describe('#replaceTemplate', function() {
+    it('should replace all template substrings', function() {
+      var bConfig = new BaseConfig()
+      var aTemplate = "this should be $logLevel and $logLevel shouldn't it?"
+      var result = bConfig.replaceTemplate(aTemplate)
+      expect(result).to.equal("this should be info and info shouldn't it?")
+      var aTemplate = "this should be $logLevel/src and $logLevel+src shouldn't it?"
+      var result = bConfig.replaceTemplate(aTemplate)
+      expect(result).to.equal("this should be info/src and info+src shouldn't it?")
+      aTemplate = "this should be ${logLevel} and ${logLevel} shouldn't it?"
+      var result = bConfig.replaceTemplate(aTemplate)
+      expect(result).to.equal("this should be info and info shouldn't it?")
+      aTemplate = "this should be $logLevel and ${logLevel} shouldn't it?"
+      var result = bConfig.replaceTemplate(aTemplate)
+      expect(result).to.equal("this should be info and info shouldn't it?")
     })
   })
 

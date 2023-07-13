@@ -26,7 +26,7 @@ export class BuildConfig extends IConfig {
    * - **configPath:** build.srcDir
    */
   @cfgr.key('build.srcDir')
-  buildSrcDir : string = ""
+  srcDir : string = ""
 
   /**
    * The directory in which all building should take place.
@@ -34,7 +34,7 @@ export class BuildConfig extends IConfig {
    * - **configPath:** build.buildDir
    */
   @cfgr.key('build.buildDir')
-  buildBuildDir : string = ""
+  buildDir : string = ""
 
   /** 
    * The path into which the LPiC tool should save the project description.
