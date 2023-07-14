@@ -229,9 +229,7 @@ export class Grammars {
       return
     }
 
-    console.log("JUST BEFORE loading grammar")
     const aGrammar = await this.registry.loadGrammar(aBaseScope)
-    console.log("JUST AFTER loading grammar")
     if (!aGrammar) {
       logger.warn("WARNING: Could not load the requested grammar")
       logger.warn(`  ${aBaseScope}`)

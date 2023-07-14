@@ -210,11 +210,13 @@ export class FileLogger extends ConsoleLogger {
    * @param theArguments - the collection of Pino log arguments
    */
   log(logLevel: number, theArguments: object) {
+    /*
     if (Logging.ERROR <= logLevel) {
      console.log("---ERROR----------------------------------------------------")
      console.log(theArguments)
      console.log("------------------------------------------------------------")
     }
+    */
     var logJson : any = { }
     if (theArguments instanceof Array) {
       for (const [key, value] of Object.entries(theArguments)) {
