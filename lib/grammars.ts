@@ -79,17 +79,20 @@ export class Grammars {
         )
       )
     } catch (err) {
+      logger.debug("Could not load the oniguruma WASM file.... trying a second time")
+      logger.debug(err)
       try {
         // try to find onig.wasm assuming we are in the npm installed setup
         logger.trace("Trying to load onig.wasm from npm")
         this._wasmBin = await fsp.readFile(
           path.join(
             path.dirname(__filename),
-            '../../vscode-oniguruma/release/onig.wasm'
+            '../../../vscode-oniguruma/release/onig.wasm'
           )
         )
       } catch (error) {
         logger.fatal("Could not load the oniguruma WASM file...")
+        logger.fatal(error)
         process.exit(1)
       }
     }
