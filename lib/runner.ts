@@ -162,6 +162,8 @@ export function loadRunner(config : IConfig) {
  */
 export async function runTMGTool(config : IConfig ) {
 
+  await Grammars.theGrammars.initVSCodeTextMateGrammars()
+
   if (!config.implements(BaseConfig)) return
 
   const bConfig = <BaseConfig>config

@@ -62,10 +62,13 @@ export class Grammars {
 
   // The initialization of the vscode-textmate grammar registery
   //
+  // see: [VSCode-textmate](https://github.com/microsoft/vscode-textmate)
+  //
   // @returns A Promise which when fulfilled means that the Grammars module has
   // been fully initialized and is ready for use.
-  async consturctor() {
-    
+  async initVSCodeTextMateGrammars() {
+    logger.debug("LOADING vscode-textmate grammar registry")
+
     try {
       // try to find onig.wasm assuming we are in the development setup
       logger.trace(`this module dir: [${path.dirname(__filename)}]`)
@@ -107,17 +110,19 @@ export class Grammars {
     const s2g = this.scope2grammar
     this.registry = new vsctm.Registry({
       onigLib: this._vscodeOnigurumaLib,
-      loadGrammar: function (scopeName : string ) : Promise<vsctmTypes.IRawGrammar | null | undefined> {
-        return new Promise(
-          () => {
-            if (s2g.has(scopeName) ) {
-              return s2g.get(scopeName)
-            }
-            logger.warn(`Unknown scope name: ${scopeName}`);
-            return null;
-        })
+      loadGrammar: async function (scopeName : string ) {
+        if (s2g.has(scopeName) ) {
+          logger.trace(`FOUND scopeName [${scopeName}]`)
+          const theGrammar = s2g.get(scopeName)
+          logger.trace(theGrammar)
+          return theGrammar
+        }
+        logger.warn(`Unknown scope name: ${scopeName}`);
+        return null;
       }
-    });
+    })
+
+    logger.debug("LOADED vscode-textmate grammar registry")
   }
 
   /**
@@ -130,7 +135,7 @@ export class Grammars {
    */
   chooseBaseScope(aDocPath : string, aFirstLine : string) {
     // start by checking first line matches...
-    for (const [aBaseScope, aGrammar] of Object.entries(this.scope2grammar)) {
+    for (const [aBaseScope, aGrammar] of this.scope2grammar.entries()) {
       if (aGrammar['firstLineMatch']) {
         logger.trace(`Checking firstLineMatch for ${aBaseScope}`)
         if (aFirstLine.match(aGrammar['firstLineMatch'])) return aBaseScope
@@ -138,7 +143,7 @@ export class Grammars {
     }
     // since none of the first line matches found a match...
     // ... move on to checking the file extension
-    for (const [aBaseScope, aGrammar] of Object.entries(this.scope2grammar)) {
+    for (const [aBaseScope, aGrammar] of this.scope2grammar.entries()) {
       if (aGrammar['fileTypes']) {
         for (const [anIndex, aFileExt] of aGrammar['fileTypes'].entries()) {
           logger.trace(`Checking ${aBaseScope} file type (${aFileExt}) against [${aDocPath}]`)
@@ -166,6 +171,8 @@ export class Grammars {
    * the document in various named Structures in the Structures module.
    */
   async traceParseOf( aDocPath : string, config : IConfig ) {
+    logger.trace(`traceParseOf docPath: [${aDocPath}]`)
+
     if (!config.implements(TraceConfig)) return
 
     const aCfgAny = <any>config
@@ -217,9 +224,14 @@ export class Grammars {
       logger.warn(`  ${aDoc.docName}`)
       return
     }
-    if (!this.registry) return
+    if (!this.registry) {
+      logger.warn("WARNING: NO grammar registry!")
+      return
+    }
 
+    console.log("JUST BEFORE loading grammar")
     const aGrammar = await this.registry.loadGrammar(aBaseScope)
+    console.log("JUST AFTER loading grammar")
     if (!aGrammar) {
       logger.warn("WARNING: Could not load the requested grammar")
       logger.warn(`  ${aBaseScope}`)
@@ -264,7 +276,7 @@ export class Grammars {
         }
       }
       if (scopes2run) {
-        for (const [aScope, someTokens] of Object.entries(scopes2run)) {
+        for (const [aScope, someTokens] of scopes2run.entries()) {
           const showScope  = traceObj(
             tConfig.traceScopesInclude, tConfig.traceScopesExclude, aScope
           )
