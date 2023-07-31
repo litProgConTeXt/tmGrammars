@@ -19,5 +19,5 @@ npm_copy_lpil_modules lpil-tool
 
 #npm_copy_lpil_modules lpil-langServer
 
-npm_copy_lpil_modules conTeXt-langServer
+#npm_copy_lpil_modules conTeXt-langServer
 
