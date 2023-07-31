@@ -2,7 +2,7 @@
  * Tracing configuration
  *
  * The ConfigClasses provide a collection of Type-Safe (TypeScript)
- * Configuration class for the LPiC projects.
+ * Configuration class for the LPiL projects.
  * 
  * This class extends the IConfig with configuration for:
  * 

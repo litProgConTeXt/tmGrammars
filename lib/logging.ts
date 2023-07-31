@@ -20,8 +20,8 @@ export type MaybeLogger = ValidLogger | undefined
 
 function stringify(anObj : any) : string {
   var inspectLevel : number = 2
-  if (process.env.LPIC_LOG_DEPTH) {
-    inspectLevel = Number(process.env.LPIC_LOG_DEPTH)
+  if (process.env.LPIL_LOG_DEPTH) {
+    inspectLevel = Number(process.env.LPIL_LOG_DEPTH)
   }
   return util.inspect(anObj, {depth:inspectLevel})
 }
@@ -56,7 +56,7 @@ export class ConsoleLogger {
   readonly pid : number = 0
 
   // The logName
-  readonly logName : string = "lpic"
+  readonly logName : string = "lpil"
 
   // How deep should the util.inspect dump an object?
   inspectLevel : number = 2
@@ -148,26 +148,26 @@ export class FileLogger extends ConsoleLogger {
    * @param logName - The name of this logger instance.
    *
    * **Environment Variables**:
-   *  - LPIC_LOG_FILE is a full path to the desired log file.
+   *  - LPIL_LOG_FILE is a full path to the desired log file.
    *
-   *  - LPIC_LOG_PREFIX is a prefix to pre-pend to an automatically generated
-   *    log file path (Default: /tmp/lpicLogger)
+   *  - LPIL_LOG_PREFIX is a prefix to pre-pend to an automatically generated
+   *    log file path (Default: /tmp/lpilLogger)
    *
-   *  - If LPIC_LOG_FILE is not set, then the log file path will be the
-   *    LPIC_LOG_PREFIX pre-pended to '_YYYY-MM-DD_HH-MM-SS_PID.log' 
+   *  - If LPIL_LOG_FILE is not set, then the log file path will be the
+   *    LPIL_LOG_PREFIX pre-pended to '_YYYY-MM-DD_HH-MM-SS_PID.log' 
    */
   constructor(logName: string) {
     super(logName)
 
-    if (process.env.LPIC_LOG_DEPTH) {
-      this.inspectLevel = Number(process.env.LPIC_LOG_DEPTH)
+    if (process.env.LPIL_LOG_DEPTH) {
+      this.inspectLevel = Number(process.env.LPIL_LOG_DEPTH)
     }
 
-    var logFilePath : string | undefined = process.env.LPIC_LOG_FILE
+    var logFilePath : string | undefined = process.env.LPIL_LOG_FILE
     if (!logFilePath) {
 
-      var logFilePrefix : string | undefined = process.env.LPIC_LOG_PREFIX
-      if (!logFilePrefix) { logFilePrefix = "/tmp/lpicLogger" }
+      var logFilePrefix : string | undefined = process.env.LPIL_LOG_PREFIX
+      if (!logFilePrefix) { logFilePrefix = "/tmp/lpilLogger" }
 
       const today = new Date()
       const todayDateArray = [
@@ -273,7 +273,7 @@ export class NoOpLogger extends ConsoleLogger {
 }
 
 // A global (static) class used to provide a simple logging interface to all of
-// the code in a LPiC project.
+// the code in a LPiL project.
 export class Logging {
 
   // Does nothing...
@@ -308,23 +308,23 @@ export class Logging {
    * Get a ValidLogger instance or create one if it has not already been
    * created.
    *
-   * **Envionrment Variables**: If **LPIC_LOG_LEVEL** is set to a *number* then
+   * **Envionrment Variables**: If **LPIL_LOG_LEVEL** is set to a *number* then
    * that number (as a string) will be converted to a number and be used to set
    * the initial logLevel. The initial (default) log level is 30 (INFO).
    * 
-   * @param logName - The name of the logger created (typically 'lpic')
+   * @param logName - The name of the logger created (typically 'lpil')
    *
-   * @returns If the **LPIC_NO_LOG** environment variable is set, then a
-   *  NoOpLogger will be returned, otherwise if **LPIC_CONSOLE_LOG** is set then
+   * @returns If the **LPIL_NO_LOG** environment variable is set, then a
+   *  NoOpLogger will be returned, otherwise if **LPIL_CONSOLE_LOG** is set then
    *  a ConsoleLogger will be returned, otherwise a FileLogger will be returned.
    */
   static getLogger(logName: string) : ValidLogger {
     if (Logging.theLogger)                 return Logging.theLogger
-    if (process.env.LPIC_NO_LOG)           Logging.theLogger = new NoOpLogger(logName)
-    else if (process.env.LPIC_CONSOLE_LOG) Logging.theLogger = new ConsoleLogger(logName)
+    if (process.env.LPIL_NO_LOG)           Logging.theLogger = new NoOpLogger(logName)
+    else if (process.env.LPIL_CONSOLE_LOG) Logging.theLogger = new ConsoleLogger(logName)
     else                                   Logging.theLogger = new FileLogger(logName)
-    if (process.env.LPIC_LOG_LEVEL) {
-      Logging.theLogger.setLevel(Number(process.env.LPIC_LOG_LEVEL))
+    if (process.env.LPIL_LOG_LEVEL) {
+      Logging.theLogger.setLevel(Number(process.env.LPIL_LOG_LEVEL))
     }
     return Logging.theLogger
   }
@@ -332,7 +332,7 @@ export class Logging {
   /**
    * Get a FileLogger instance
    * 
-   * @param logName - The name of the logger created (typically 'lpic')
+   * @param logName - The name of the logger created (typically 'lpil')
    */
   static getFileLogger(logName: string) : FileLogger {
     if (Logging.theLogger) Logging.theLogger.close()
@@ -343,7 +343,7 @@ export class Logging {
   /**
    * Get a ConsoleLogger instance
    * 
-   * @param logName - The name of the logger created (typically 'lpic')
+   * @param logName - The name of the logger created (typically 'lpil')
    */
   static getConsoleLogger(logName: string) : ConsoleLogger {
     if (Logging.theLogger) Logging.theLogger.close()
@@ -354,7 +354,7 @@ export class Logging {
   /**
    *  Get a NoOpLogger instance
    * 
-   * @param logName - The name of the logger created (typically 'lpic')
+   * @param logName - The name of the logger created (typically 'lpil')
    */
   static getNoOpLogger(logName: string) : NoOpLogger {
     if (Logging.theLogger) Logging.theLogger.close()

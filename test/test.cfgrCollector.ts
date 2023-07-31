@@ -91,7 +91,7 @@ export class BaseConfig extends IConfig {
   parallel : boolean = false
 
   /**
-   * The files to be parsed by the LPiC tool
+   * The files to be parsed by the LPiL tool
    * 
    * - **configPath:** initialFiles
    * - **cli:** all remaining (non-optional) arguments

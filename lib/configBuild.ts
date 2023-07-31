@@ -2,7 +2,7 @@
  * Building configuration
  *
  * The ConfigClasses provide a collection of Type-Safe (TypeScript)
- * Configuration class for the LPiC projects.
+ * Configuration class for the LPiL projects.
  * 
  * This class extends the IConfig with configuration for:
  * 
@@ -15,7 +15,7 @@ import { IConfig, CfgrCollector, appendStrArg  } from "./cfgrCollector.js"
 
 const cfgr = new CfgrCollector()
 
-// The configuration used by the LPiC-tool to extract source code from a LPiC
+// The configuration used by the LPiL-tool to extract source code from a LPiL
 // document.
 @cfgr.klass()
 export class BuildConfig extends IConfig {
@@ -37,7 +37,7 @@ export class BuildConfig extends IConfig {
   buildDir : string = ""
 
   /** 
-   * The path into which the LPiC tool should save the project description.
+   * The path into which the LPiL tool should save the project description.
    * 
    * - **configPath:** build.projDescPath
    */

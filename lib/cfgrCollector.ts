@@ -3,7 +3,7 @@ import * as path from "path"
 
 import { Logging, ValidLogger } from "./logging.js"
 
-const logger : ValidLogger = Logging.getLogger('lpic')
+const logger : ValidLogger = Logging.getLogger('lpil')
 
 /**
  * The prototype of all argParsers.

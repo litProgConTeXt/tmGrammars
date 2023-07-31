@@ -2,7 +2,7 @@
  * Base configuration
  *
  * The ConfigClasses provide a collection of Type-Safe (TypeScript)
- * Configuration class for the LPiC projects.
+ * Configuration class for the LPiL projects.
  * 
  * This is the base of the ConfigClass hierarchy.
  * 
@@ -61,7 +61,7 @@ export class BaseConfig extends IConfig {
   logLevel : string = 'info'
 
   /**
-   * An array of paths to LPiC actions to be used in this tool.
+   * An array of paths to LPiL actions to be used in this tool.
    * 
    * - **configPath:** load.actions
    * - **cli:** -la, -loadActions
@@ -75,7 +75,7 @@ export class BaseConfig extends IConfig {
   loadActions : Array<string> = []
 
   /**
-   * An array of paths to LPiC builders to be used in this tool.
+   * An array of paths to LPiL builders to be used in this tool.
    * 
    * - **configPath:** load.builders
    * - **cli:** -lb, --loadBuilders
@@ -89,7 +89,7 @@ export class BaseConfig extends IConfig {
   loadBuilders : Array<string> = []
 
   /**
-   * An array of paths to TextMate/LPiC grammars to be used in this tool.
+   * An array of paths to TextMate/LPiL grammars to be used in this tool.
    *
    * - **configPath:** load.grammars
    * - **cli:** -lg, --loadGrammars
@@ -147,7 +147,7 @@ export class BaseConfig extends IConfig {
   parallel : boolean = false
 
   /**
-   * The files to be parsed by the LPiC tool
+   * The files to be parsed by the LPiL tool
    * 
    * - **configPath:** initialFiles
    * - **cli:** all remaining (non-optional) arguments

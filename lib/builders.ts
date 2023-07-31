@@ -1,7 +1,7 @@
 /**
- * LPiC code builders
+ * LPiL code builders
  * 
- * LPiC Builders are used to assemble a collection of data contained in
+ * LPiL Builders are used to assemble a collection of data contained in
  * structures into one or more output files on the file-system.
  * 
  * @module
@@ -17,7 +17,7 @@ import { ScopeActions            } from "./scopeActions.js"
 import { Structures              } from "./structures.js"
 import { Logging, ValidLogger    } from "./logging.js"
 
-const logger : ValidLogger = Logging.getLogger('lpic')
+const logger : ValidLogger = Logging.getLogger('lpil')
 
 /**
  * The call pattern for all builder functions

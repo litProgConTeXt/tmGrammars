@@ -14,7 +14,7 @@ import { ScopeActions          } from "./scopeActions.js"
 import { Structures            } from "./structures.js"
 import { Logging, ValidLogger  } from "./logging.js"
 
-const logger : ValidLogger = Logging.getLogger('lpic')
+const logger : ValidLogger = Logging.getLogger('lpil')
 
 /**
  * setup a TextMate Grammar tool
@@ -174,14 +174,14 @@ export async function runTMGTool(config : IConfig ) {
   }
 
   await ScopeActions.theScopeActions.runActionsStartingWith(
-    'initialize', 'lpic', [], 0, undefined, bConfig.parallel
+    'initialize', 'lpil', [], 0, undefined, bConfig.parallel
   )
 
   await ScopeActions.theScopeActions.runActionsStartingWith(
-    'run', 'lpic', bConfig.initialFiles, 0, undefined, bConfig.parallel
+    'run', 'lpil', bConfig.initialFiles, 0, undefined, bConfig.parallel
   )
 
   await ScopeActions.theScopeActions.runActionsStartingWith(
-    'finalize', 'lpic', [], 0, undefined, bConfig.parallel
+    'finalize', 'lpil', [], 0, undefined, bConfig.parallel
   )
 }

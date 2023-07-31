@@ -1,5 +1,5 @@
 {
-  "name"               : "LPiC TypeScript Modules",
+  "name"               : "LPiL TypeScript Modules",
   "readme"             : "Readme.md",
   "commentStyle"       : "all",
   "entryPoints"        : ["lib", "test"],

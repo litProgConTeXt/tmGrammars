@@ -30,7 +30,7 @@ import { ScopeActions                  } from "./scopeActions.js"
 import { Structures                    } from "./structures.js"
 import { Logging, ValidLogger          } from "./logging.js"
 
-const logger : ValidLogger = Logging.getLogger('lpic')
+const logger : ValidLogger = Logging.getLogger('lpil')
 
 interface _vscodeOnigurma {
   createOnigScanner(patterns: string[]): vsctmTypes.OnigScanner,

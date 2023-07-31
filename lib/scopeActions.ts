@@ -1,7 +1,7 @@
 /**
- * LPiC Scope actions
+ * LPiL Scope actions
  *
- * The LPiC socpe actions are javascript methods, called 'actions', which are
+ * The LPiL socpe actions are javascript methods, called 'actions', which are
  * run whenever a given scope is found while parsing a document.
  *
  * @module
@@ -19,7 +19,7 @@ import { Logging, ValidLogger    } from "./logging.js"
 
 //TODO: https://masteringjs.io/tutorials/fundamentals/async-foreach
 
-const logger : ValidLogger = Logging.getLogger('lpic')
+const logger : ValidLogger = Logging.getLogger('lpil')
 
 /**
  * The protype scopeActionFunction

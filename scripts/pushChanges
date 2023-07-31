@@ -1,23 +1,23 @@
 #!/bin/bash
 
-# Push changes to tmGrammars to the conTeXt and lpic langServers
+# Push changes to tmGrammars to the conTeXt and lpil langServers
 cd ..
 
-npm_copy_lpic_modules () {
-	toDir=$1
-	toNPM=$1/node_modules
+npm_copy_lpil_modules () {
+    toDir=$1
+    toNPM=$1/node_modules
   echo "----------------------------------------------------------"
   echo ""
-  echo "Javascript copying lpic modules to $toDir"
-  rm -rf $toNPM/lpic-modules
-  cp -R lpic-modules $toNPM
-  rm -rf $toNPM/lpic-modules/.git
-  rm -rf $toNPM/lpic-modules/node_modules
+  echo "Javascript copying lpil modules to $toDir"
+  rm -rf $toNPM/lpil-modules
+  cp -R lpil-modules $toNPM
+  rm -rf $toNPM/lpil-modules/.git
+  rm -rf $toNPM/lpil-modules/node_modules
 }
 
-npm_copy_lpic_modules lpic-tool
+npm_copy_lpil_modules lpil-tool
 
-#npm_copy_lpic_modules lpic-langServer
+#npm_copy_lpil_modules lpil-langServer
 
-npm_copy_lpic_modules conTeXt-langServer
+npm_copy_lpil_modules conTeXt-langServer
 

@@ -7,14 +7,14 @@
  *   - their logging levels, 
  *   - that they log at all levels below the logging level
  *   - that they do not log at any levels above the logging level
- *   - While testing the `FileLogger` we manipulate the `LPIC_LOG_FILE`, and
- *     `LPIC_LOG_PREFIX` environment variables to ensure the correct behaviour.
+ *   - While testing the `FileLogger` we manipulate the `LPIL_LOG_FILE`, and
+ *     `LPIL_LOG_PREFIX` environment variables to ensure the correct behaviour.
  * 
  * - Using the Logging `getLogger`, `getNoOpLogger`, `getConsoleLogger` and
  *   `getFileLogger` methods to ensure the correct loggers are returned.
  *
- *   - While testing the `getLogger` method we manipulate the `LPIC_NO_LOG`,
- *     `LPIC_CONSOLE_LOG` and `LPIC_LOG_LEVEL` environment variables to ensure
+ *   - While testing the `getLogger` method we manipulate the `LPIL_NO_LOG`,
+ *     `LPIL_CONSOLE_LOG` and `LPIL_LOG_LEVEL` environment variables to ensure
  *     the correct behaviour.
  * @module
  */
@@ -75,17 +75,17 @@ describe('FileLogger', function(){
   describe('#constructor()', function () {
     it('should return FileLogger instance', function () {
       var flStub = sinon.stub(fs, "openSync").returns(42)
-      process.env.LPIC_LOG_FILE = "test.log"
+      process.env.LPIL_LOG_FILE = "test.log"
       var fLogger = new FileLogger("aLog1")
       expect(fLogger.logFilePath).is.equal("test.log")
       expect(fLogger.logFile).is.equal(42)
-      delete process.env.LPIC_LOG_FILE
-      process.env.LPIC_LOG_PREFIX = "testDir"
+      delete process.env.LPIL_LOG_FILE
+      process.env.LPIL_LOG_PREFIX = "testDir"
       fLogger = new FileLogger("aLog2")
       expect(fLogger.logFilePath.startsWith("testDir_")).is.true
-      delete process.env.LPIC_LOG_PREFIX
+      delete process.env.LPIL_LOG_PREFIX
       fLogger = new FileLogger("aLog3")
-      expect(fLogger.logFilePath.startsWith("/tmp/lpic_"))
+      expect(fLogger.logFilePath.startsWith("/tmp/lpil_"))
     })
   })
 })
@@ -107,42 +107,42 @@ describe('Logging', function () {
       expect(aLogger.level).is.equal(30)
       delete Logging.theLogger
 
-      process.env.LPIC_LOG_LEVEL="20"
+      process.env.LPIL_LOG_LEVEL="20"
       aLogger = Logging.getLogger("aLog2")
       expect(aLogger).is.instanceof(FileLogger)
       expect(aLogger.logName).is.equal("aLog2")
       expect(aLogger.level).is.equal(20)
       delete Logging.theLogger
 
-      process.env.LPIC_CONSOLE_LOG="true"
+      process.env.LPIL_CONSOLE_LOG="true"
       aLogger = Logging.getLogger("aLog3")
       expect(aLogger).is.instanceof(ConsoleLogger)
       expect(aLogger.logName).is.equal("aLog3")
       expect(aLogger.level).is.equal(20)
       delete Logging.theLogger
 
-      delete process.env.LPIC_LOG_LEVEL
+      delete process.env.LPIL_LOG_LEVEL
       aLogger = Logging.getLogger("aLog4")
       expect(aLogger).is.instanceof(ConsoleLogger)
       expect(aLogger.logName).is.equal("aLog4")
       expect(aLogger.level).is.equal(30)
       delete Logging.theLogger
 
-      process.env.LPIC_NO_LOG="true"
+      process.env.LPIL_NO_LOG="true"
       aLogger = Logging.getLogger("aLog5")
       expect(aLogger).is.instanceof(NoOpLogger)
       expect(aLogger.logName).is.equal("aLog5")
       expect(aLogger.level).is.equal(30)
       delete Logging.theLogger
 
-      delete process.env.LPIC_CONSOLE_LOG
+      delete process.env.LPIL_CONSOLE_LOG
       aLogger = Logging.getLogger("aLog6")
       expect(aLogger).is.instanceof(NoOpLogger)
       expect(aLogger.logName).is.equal("aLog6")
       expect(aLogger.level).is.equal(30)
       delete Logging.theLogger
 
-      delete process.env.LPIC_NO_LOG
+      delete process.env.LPIL_NO_LOG
       aLogger = Logging.getLogger("aLog7")
       expect(aLogger).is.instanceof(FileLogger)
       expect(aLogger.logName).is.equal("aLog7")

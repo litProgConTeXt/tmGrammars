@@ -11,7 +11,7 @@ import * as fsp  from "fs/promises"
 import { IConfig              } from "./cfgrCollector.js"
 import { Logging, ValidLogger } from "./logging.js"
 
-const logger : ValidLogger = Logging.getLogger('lpic')
+const logger : ValidLogger = Logging.getLogger('lpil')
 
 // A representation of a single document
 export class Document {

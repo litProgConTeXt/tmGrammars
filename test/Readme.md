@@ -1,4 +1,4 @@
-# lpic-module testing
+# lpil-module testing
 
 We use:
   - [mocha](https://mochajs.org/) for the testing framework

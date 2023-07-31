@@ -1,4 +1,4 @@
-# Common TypeScript modules for the LPiC projects
+# Common TypeScript modules for the LPiL projects
 
 A collection of javascript modules to manipulate and run TextMate Grammars
 using vscode components.

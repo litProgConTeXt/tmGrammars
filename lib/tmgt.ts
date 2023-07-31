@@ -7,9 +7,9 @@
  * @module
  */
 
-// The following two lines MUST be run befor ANY other lpic-modules
+// The following two lines MUST be run befor ANY other lpil-modules
 import { Logging, ValidLogger     } from "./logging.js"
-const logger : ValidLogger = Logging.getLogger('lpic')
+const logger : ValidLogger = Logging.getLogger('lpil')
 
 import { CfgrHelpers              } from "./cfgrHelpers.js"
 import { BaseConfig               } from "./configBase.js"

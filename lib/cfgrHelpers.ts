@@ -41,7 +41,7 @@ import {
 }                                      from "./cfgrCollector.js"
 import { Logging, ValidLogger       } from "./logging.js"
 
-const logger : ValidLogger = Logging.getLogger('lpic')
+const logger : ValidLogger = Logging.getLogger('lpil')
 
 // Cfgr is the global Configurator class (it has no useful instances)
 export class CfgrHelpers {
