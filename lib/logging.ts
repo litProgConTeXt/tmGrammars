@@ -23,7 +23,7 @@ function stringify(anObj : any) : string {
   if (process.env.LPIL_LOG_DEPTH) {
     inspectLevel = Number(process.env.LPIL_LOG_DEPTH)
   }
-  return util.inspect(anObj, {depth:inspectLevel})
+  return util.inspect(anObj, { depth: inspectLevel })
 }
 
 // Fix for JSON.stringify trying to stringify a BitInt
@@ -72,6 +72,10 @@ export class ConsoleLogger {
     this.logName = logName
     this.hostName = os.hostname()
     this.pid = process.pid
+    this.inspectLevel = 2
+    if (process.env.LPIL_LOG_DEPTH) {
+      this.inspectLevel = Number(process.env.LPIL_LOG_DEPTH)
+    }
   }
    
   // Flush the current log
@@ -98,7 +102,17 @@ export class ConsoleLogger {
    * @param theArguments - the collection of Pino log arguments
    */
   log(logLevel: number, ...theArguments: Array<any>) {
-    console.log(...theArguments)
+    var theOutput = ""
+    if (theArguments.length < 2) {
+      if (typeof theArguments[0] === 'string') {
+        theOutput = theArguments[0]
+      } else {
+        theOutput = util.inspect(theArguments[0], { depth: this.inspectLevel })
+      }
+    } else {
+      theOutput = util.inspect(theArguments, { depth: this.inspectLevel })
+    }
+    console.log(theOutput)
   }
 
   // Log the arguments at the TRACE level.

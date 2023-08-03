@@ -213,7 +213,7 @@ export class Grammars {
               return true
             }
           }
-          logger.debug("No match found in traceObj")
+          logger.trace("No match found in traceObj")
           return false
         }
         return true

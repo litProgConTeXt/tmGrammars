@@ -29,6 +29,15 @@ export class BuildConfig extends IConfig {
   srcDir : string = ""
 
   /**
+   * The directory into which all extracted lpil code chunks should be put for
+   * later inclusion into a LaTeX document.
+   *
+   * - **configPath:** build.latexDir
+   */
+  @cfgr.key('build.latexDir')
+  latexDir : string = ""
+
+  /**
    * The directory in which all building should take place.
    * 
    * - **configPath:** build.buildDir
