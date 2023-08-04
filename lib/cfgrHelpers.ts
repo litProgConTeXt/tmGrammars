@@ -312,10 +312,8 @@ export class CfgrHelpers {
     cliArgs : Command
   ) {
     const aCfgAny = <any>aConfigInstance
-    if ((0 < cliArgs.args.length) && aCfgAny['initialFiles']) {
-      cliArgs.args.forEach(function (anInitialFile) {
-        aCfgAny['initialFiles'].push(anInitialFile)
-      })
+    if ((0 < cliArgs.args.length)) {
+      aCfgAny['initialFile'] = cliArgs.args[0]
     }
     var cliOpts = cliArgs.opts()
     logger.debug(typeof cliOpts)

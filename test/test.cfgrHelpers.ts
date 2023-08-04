@@ -96,12 +96,12 @@ export class BaseConfig extends IConfig{
    * - **cli:** all remaining (non-optional) arguments
    */
   @cfgr.cliArgument(
-    'initialFiles',
+    'initialFile',
     '[path]',
     'The documents to parse',
-    appendStrArg
+    undefined
   )
-  initialFiles : string[] = []
+  initialFile : string = ""
 }
 
 cfgr = new CfgrCollector()
@@ -134,9 +134,7 @@ configPaths:
 logLevel: trace
 pathPrefix: /tmp/test
 parallel: true
-initialFiles: 
-  - testA
-  - testB
+initialFile: testA
 `
 describe('CfgrHelpers', function() {
   
@@ -166,8 +164,7 @@ describe('CfgrHelpers', function() {
       expect(config.parallel).is.false
       expect(config.logLevel).is.equal("info")
       expect(config.pathPrefix).is.equal("")
-      expect(config.initialFiles).is.instanceof(Array)
-      expect(config.initialFiles.length).is.equal(0)
+      expect(config.initialFile).is.equal("")
 
       var testDict = yaml.parse(testYaml)
       CfgrHelpers.loadConfigFromDict(<IConfig>config, '',testDict)
@@ -177,13 +174,10 @@ describe('CfgrHelpers', function() {
       expect(config.parallel).is.true
       expect(config.logLevel).is.equal("trace")
       expect(config.pathPrefix).is.equal("/tmp/test")
-      expect(config.initialFiles).is.instanceof(Array)
-      expect(config.initialFiles.length).is.equal(2)
-      expect(config.initialFiles[1]).is.equal("testB")
+      expect(config.initialFile).is.equal("testA")
     })
   })
-  
-  
+   
   describe('#parseCliOptions', function () {
     it('should parse the cli options and set the config', function () {
       var config = new BaseConfig()
@@ -193,8 +187,7 @@ describe('CfgrHelpers', function() {
       expect(config.parallel).is.false
       expect(config.logLevel).is.equal("info")
       expect(config.pathPrefix).is.equal("")
-      expect(config.initialFiles).is.instanceof(Array)
-      expect(config.initialFiles.length).is.equal(0)
+      expect(config.initialFile).is.equal("")
       var cliArgs = new Command()
       CfgrHelpers.setupCommander(config, cliArgs, "test", "a test description", "0.0.1")
       cliArgs.parse([
@@ -205,6 +198,7 @@ describe('CfgrHelpers', function() {
         "--parallel",
         "testA1", "testB1"
       ])
+      console.log(cliArgs)
       CfgrHelpers.updateConfigFromCli(config, cliArgs)
       expect(config.configPaths).is.instanceof(Array)
       expect(config.configPaths.length).is.equal(1)
@@ -212,9 +206,7 @@ describe('CfgrHelpers', function() {
       expect(config.parallel).is.true
       expect(config.logLevel).is.equal("trace")
       expect(config.pathPrefix).is.equal("/tmp/test")
-      expect(config.initialFiles).is.instanceof(Array)
-      expect(config.initialFiles.length).is.equal(2)
-      expect(config.initialFiles[1]).is.equal("testB1")
+      expect(config.initialFile).is.equal("testA1")
     })
   })
 
@@ -229,8 +221,7 @@ describe('CfgrHelpers', function() {
       expect(config.parallel).is.false
       expect(config.logLevel).is.equal("info")
       expect(config.pathPrefix).is.equal("")
-      expect(config.initialFiles).is.instanceof(Array)
-      expect(config.initialFiles.length).is.equal(0)
+      expect(config.initialFile).is.equal("")
       expect(config.implements("BaseConfig")).is.true
       expect(config.implements(BaseConfig)).is.true
       expect(config.implements("TestBaseConfig")).is.false

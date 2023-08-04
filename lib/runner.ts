@@ -168,7 +168,8 @@ export async function runTMGTool(config : IConfig ) {
 
   const bConfig = <BaseConfig>config
 
-  if (bConfig.initialFiles.length < 1) {
+  console.log(bConfig.initialFile)
+  if (bConfig.initialFile.length < 1) {
     console.log("No document specified to trace while parsing")
     process.exit(0)
   }
@@ -178,7 +179,7 @@ export async function runTMGTool(config : IConfig ) {
   )
 
   await ScopeActions.theScopeActions.runActionsStartingWith(
-    'run', 'lpil', bConfig.initialFiles, 0, undefined, bConfig.parallel
+    'run', 'lpil', [bConfig.initialFile], 0, undefined, bConfig.parallel
   )
 
   await ScopeActions.theScopeActions.runActionsStartingWith(

@@ -153,10 +153,10 @@ export class BaseConfig extends IConfig {
    * - **cli:** all remaining (non-optional) arguments
    */
   @cfgr.cliArgument(
-    'initialFiles',
+    'initialFile',
     '[path]',
-    'The documents to parse',
-    appendStrArg
+    'The document to parse',
+    undefined
   )
-  initialFiles : string[] = []
+  initialFile : string = ""
 }
