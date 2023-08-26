@@ -275,7 +275,23 @@ export class CfgrHelpers {
     description : string,
     version : string
   ) {
-    cliArgs.name(name).description(description).version(version)
+    cliArgs.name(name).description(
+`${description}
+
+Environment Variables:
+  LPIL_LOG_PREFIX   A prefix to prepend to the date/time stamp
+                      (Can include a different directory)
+  LPIL_LOG_FILE     The full absolute path to the log file.
+                      (This over-rides LPIL_LOG_PREFIX)
+  LPIL_LOG_LEVEL    The level of logging to provide
+                      (A number between 0 and 60 which 
+                       determines the amount of logging provided:
+                       TRACE=10, DEBUG=20,  INFO=30,
+                        WARN=40, ERROR=50, FATAL=60)
+  LPIL_LOG_DEPTH    The (recursive) depth with which to log objects
+  LPIL_CONSOLE_LOG  Log to the console
+  LPIL_NO_LOG       Do not Log at all`
+    ).version(version)
     aConfigInstance._cliOptions.forEach(function(aCmdOpt : CommanderOptions){
       if (aCmdOpt.isArgument) {
         var anArgument : Argument = new Argument(aCmdOpt.flags, aCmdOpt.description)
