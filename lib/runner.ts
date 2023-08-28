@@ -7,7 +7,6 @@
 import { IConfig               } from "./cfgrCollector.js"
 import { CfgrHelpers           } from "./cfgrHelpers.js"
 import { BaseConfig            } from "./configBase.js"
-import { Builders              } from "./builders.js"
 import { TraceConfig as Config } from "./configTrace.js"
 import { Grammars              } from "./grammars.js"
 import { ScopeActions          } from "./scopeActions.js"
@@ -59,16 +58,6 @@ export async function setupTMGTool<Config extends IConfig>(
     logger.debug("---------------------------------------------------------")
   }
   
-  if (bConfig.loadBuilders && 0 < bConfig.loadBuilders.length) {
-    logger.debug("\n--loading builders---------------------------------------")
-    await Promise.all(bConfig.loadBuilders.map( async (aBuildersPath : string) => {
-      logger.debug(`starting to load builders from [${aBuildersPath}]`)
-      await Builders.theBuilders.loadBuildersFrom(aBuildersPath, bConfig)
-      logger.debug(`finished loading builders from [${aBuildersPath}]`)
-    }))
-    logger.debug("---------------------------------------------------------")
-  }
-
   if (bConfig.loadGrammars && 0 < bConfig.loadGrammars.length) {
     logger.debug("\n--loading grammars---------------------------------------")
     await Promise.all(bConfig.loadGrammars.map( async (aGrammarPath : string) => {

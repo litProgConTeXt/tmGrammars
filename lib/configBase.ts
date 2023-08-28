@@ -3,19 +3,18 @@
  *
  * The ConfigClasses provide a collection of Type-Safe (TypeScript)
  * Configuration class for the LPiL projects.
- * 
+ *
  * This is the base of the ConfigClass hierarchy.
- * 
+ *
  * It defines the configuration which is common to all tools for example:
- * 
+ *
  *  - loading grammars
  *  - loading scoped actions
- *  - loading builders
  *
  * @module
  */
 
-import { 
+import {
   IConfig,
   CfgrCollector,
   appendStrArg
@@ -33,7 +32,7 @@ export class BaseConfig extends IConfig {
 
   /**
    *  An array of configuration paths which will be loaded in order.
-   * 
+   *
    *  - **configPath:** configPaths
    *  - **cli:**        -c, --config
    */
@@ -48,7 +47,7 @@ export class BaseConfig extends IConfig {
 
   /**
    * The current logger logLevel (see: {@link ConsoleLogger.level})
-   * 
+   *
    * - **configPath:** logLevel
    * - **cli:** -ll, --logLevel
    */
@@ -57,12 +56,12 @@ export class BaseConfig extends IConfig {
     '-ll, --logLevel <levelName>',
     'Set the logger log level',
     undefined
-  )  
+  )
   logLevel : string = 'info'
 
   /**
    * An array of paths to LPiL actions to be used in this tool.
-   * 
+   *
    * - **configPath:** load.actions
    * - **cli:** -la, -loadActions
    */
@@ -73,20 +72,6 @@ export class BaseConfig extends IConfig {
     appendStrArg
   )
   loadActions : Array<string> = []
-
-  /**
-   * An array of paths to LPiL builders to be used in this tool.
-   * 
-   * - **configPath:** load.builders
-   * - **cli:** -lb, --loadBuilders
-   */
-  @cfgr.cliOption(
-    'load.builders',
-    '-lb, --loadBuilders <file>',
-    'Load builders from an ES6 module',
-    appendStrArg
-  )
-  loadBuilders : Array<string> = []
 
   /**
    * An array of paths to TextMate/LPiL grammars to be used in this tool.
@@ -134,7 +119,7 @@ export class BaseConfig extends IConfig {
 
   /**
    * Run all scoped actions in parallel. (Default: false)
-   * 
+   *
    * - **configPath:** parallel
    * - **cli:** -p, --parallel
    */
@@ -148,7 +133,7 @@ export class BaseConfig extends IConfig {
 
   /**
    * The files to be parsed by the LPiL tool
-   * 
+   *
    * - **configPath:** initialFiles
    * - **cli:** all remaining (non-optional) arguments
    */

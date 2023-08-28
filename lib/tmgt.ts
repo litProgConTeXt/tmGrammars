@@ -15,7 +15,6 @@ import { CfgrHelpers              } from "./cfgrHelpers.js"
 import { BaseConfig               } from "./configBase.js"
 import { BuildConfig              } from "./configBuild.js"
 import { TraceConfig              } from "./configTrace.js"
-import { Builders                 } from "./builders.js"
 import { Grammars                 } from "./grammars.js"
 import { ScopeActions             } from "./scopeActions.js"
 import { Structures               } from "./structures.js"
@@ -45,11 +44,6 @@ async function runTool() {
 
   if (tConfig.showActions) {
     ScopeActions.theScopeActions.printActions()
-    process.exit(0)
-  }
-
-  if (tConfig.showBuilders) {
-    Builders.theBuilders.printBuilders()
     process.exit(0)
   }
 

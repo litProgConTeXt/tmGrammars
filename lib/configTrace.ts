@@ -36,20 +36,6 @@ export class TraceConfig extends IConfig {
   showActions : boolean = false
 
   /**
-   * Should the actions be listed? (Default: false)
-   * 
-   * - **configPath:** showActions
-   * - **cli:* --actions
-   */
-  @cfgr.cliOption(
-    'showBuilders',
-    '--builders',
-    'Show the builders',
-    undefined
-  )
-  showBuilders : boolean = false
-
-  /**
    * Should all grammars be shown? (Default: false)
    * 
    * - **configPath:* showAllGrammars

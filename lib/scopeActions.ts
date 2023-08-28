@@ -11,7 +11,6 @@ import * as fsp from "fs/promises"
 import * as path from "path"
 
 import { IConfig                 } from "./cfgrCollector.js"
-import { Builders                } from "./builders.js"
 import { Document, DocumentCache } from "./documents.js"
 import { Grammars                } from "./grammars.js"
 import { Structures              } from "./structures.js"
@@ -95,7 +94,6 @@ class ScopeAction {
 
 export type RegisterScopeActionsFunction = (
   config        : IConfig,
-  builders      : Builders,
   documentCache : DocumentCache,
   grammars      : Grammars,
   scopeActions  : ScopeActions,
@@ -187,7 +185,6 @@ export class ScopeActions {
         logger.debug(`  loaded ${aPath}`)
         aModule.registerActions(
           config,
-          Builders.theBuilders,
           DocumentCache.theDocumentCache,
           Grammars.theGrammars,
           ScopeActions.theScopeActions,
