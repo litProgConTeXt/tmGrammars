@@ -174,14 +174,17 @@ export async function runTMGTool(config : IConfig ) {
     process.exit(0)
   }
 
+  logger.warn('runTMGTool: initialize')
   await ScopeActions.theScopeActions.runActionsStartingWith(
     'initialize', 'lpil', [], 0, undefined, bConfig.parallel
   )
 
+  logger.warn('runTMGTool: run')
   await ScopeActions.theScopeActions.runActionsStartingWith(
     'run', 'lpil', [bConfig.initialFile], 0, undefined, bConfig.parallel
   )
 
+  logger.warn('runTMGTool: finalize')
   await ScopeActions.theScopeActions.runActionsStartingWith(
     'finalize', 'lpil', [], 0, undefined, bConfig.parallel
   )

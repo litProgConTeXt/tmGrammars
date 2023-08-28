@@ -179,7 +179,7 @@ export class ScopeActions {
     const openedDir = await fsp.opendir(aDir)
     const actions2Load = []
     for await (const dirEnt of openedDir) {
-      if (!dirEnt.name.endsWith(".js")) continue
+      if (!dirEnt.name.endsWith("Actions.js")) continue
       actions2Load.push(async function() {
         const aPath = path.join(aDir, dirEnt.name)
         logger.debug(`  loading ${aPath}`)
